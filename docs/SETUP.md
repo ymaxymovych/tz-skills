@@ -1,0 +1,201 @@
+# SETUP — встановлення за 10 хвилин
+
+Інструкція для Windows (Git Bash), macOS і Linux. Команди — для bash.
+На Windows відкрий **Git Bash** (не PowerShell, не cmd).
+
+---
+
+## Крок 0. Перевір передумови
+
+```bash
+bash --version        # має бути
+python3 --version || python --version   # хоча б один
+curl --version        # має бути (в Git Bash є)
+openssl version        # має бути (в Git Bash є)
+```
+
+Якщо нема `python3`/`python` — постав jq (`winget install jqlang.jq` на Windows,
+`brew install jq` на macOS). Потрібен АБО python, АБО jq.
+
+---
+
+## Крок 1. Постав репозиторій у стале місце
+
+```bash
+git clone https://github.com/ymaxymovych/tz-skills.git ~/tz-skills
+cd ~/tz-skills
+chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
+```
+
+> Немає git? Завантаж ZIP зі сторінки репозиторію (кнопка **Code → Download ZIP**) і розпакуй
+> у `~/tz-skills` так, щоб було `~/tz-skills/lib/llm-critic.sh`, `~/tz-skills/skills/...`.
+
+---
+
+## Крок 2. Встанови скіли у Claude Code
+
+Claude Code шукає скіли у `~/.claude/skills/`. Скопіюй туди обидві теки:
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r ~/tz-skills/skills/tz-review  ~/.claude/skills/
+cp -r ~/tz-skills/skills/tz-verify  ~/.claude/skills/
+```
+
+Після цього у Claude Code стануть доступні команди `/tz-review` і `/tz-verify`.
+
+---
+
+## Крок 3. Налаштуй провайдерів (`providers.json`)
+
+Диспетчер шукає `providers.json` у такому порядку:
+1. шлях зі змінної `TZ_PROVIDERS_CONFIG`;
+2. `providers.json` у корені твого репозиторію (і вище по дереву);
+3. `~/.claude/tz-providers.json`.
+
+Найпростіше — покласти глобально:
+
+```bash
+cp ~/tz-skills/providers.example.json ~/.claude/tz-providers.json
+```
+
+Відкрий `~/.claude/tz-providers.json` і в блоці `"critics"` залиш ТРИ слоти РІЗНИХ вендорів.
+У файлі вже є 4 готові профілі в `_profiles` — просто перенеси поля потрібного профілю в `critics`.
+
+### Профіль A — «маю лише Claude» (рекомендовано для старту, безкоштовно)
+
+Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні вендори — DeepSeek і Qwen):
+
+```json
+{
+  "critics": {
+    "critic_a": { "backend": "claude-cli" },
+    "critic_b": { "backend": "nim", "model": "deepseek-ai/deepseek-r1" },
+    "critic_c": { "backend": "nim", "model": "qwen/qwen2.5-coder-32b-instruct" }
+  }
+}
+```
+
+### Профіль B — «маю всі три CLI» (найкраща незалежність)
+
+```json
+{
+  "critics": {
+    "critic_a": { "backend": "claude-cli" },
+    "critic_b": { "backend": "codex-cli" },
+    "critic_c": { "backend": "gemini-cli" }
+  }
+}
+```
+
+### Профіль C — «без встановлення CLI, лише OpenRouter»
+
+```json
+{
+  "critics": {
+    "critic_a": { "backend": "openrouter", "model": "anthropic/claude-sonnet-4.5" },
+    "critic_b": { "backend": "openrouter", "model": "openai/gpt-5" },
+    "critic_c": { "backend": "openrouter", "model": "google/gemini-2.5-pro" }
+  }
+}
+```
+
+---
+
+## Крок 4. Отримай ключі (лише для API-бекендів)
+
+### NVIDIA NIM — БЕЗКОШТОВНО
+
+1. Зайди на **https://build.nvidia.com**, зареєструйся (можна через Google).
+2. Обери будь-яку модель (напр. DeepSeek-R1) → кнопка **Get API Key**.
+3. Скопіюй ключ (починається з `nvapi-...`).
+4. Додай у ENV:
+
+```bash
+echo 'export NVIDIA_API_KEY="nvapi-ТВІЙ_КЛЮЧ"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Список безкоштовних моделей і їхні точні id — на build.nvidia.com у картці кожної моделі
+(поле `model` у виклику). Приклади: `deepseek-ai/deepseek-r1`,
+`qwen/qwen2.5-coder-32b-instruct`, `meta/llama-3.3-70b-instruct`.
+
+### OpenRouter — платно (per-token)
+
+1. Зайди на **https://openrouter.ai**, зареєструйся, поклади невеликий баланс.
+2. **Keys** → **Create Key**.
+3. Додай у ENV:
+
+```bash
+echo 'export OPENROUTER_API_KEY="sk-or-ТВІЙ_КЛЮЧ"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Точні id моделей — на **https://openrouter.ai/models** (копіюй рядок під назвою, напр.
+`openai/gpt-5`). Якщо модель делістнули — виклик дасть 404; онови `model` у конфізі.
+
+### CLI-бекенди (опційно)
+
+- `claude-cli` — вже є, якщо ти користуєшся Claude Code.
+- `codex-cli` — OpenAI Codex CLI (`npm i -g @openai/codex`, потім залогінитись).
+- `gemini-cli` — Google Gemini CLI (встанови й залогінься за їхньою інструкцією).
+
+Диспетчер сам викликає їх правильно; тобі треба лише щоб команда була в PATH і залогінена.
+
+---
+
+## Крок 5. Перевір, що все живе
+
+```bash
+bash ~/tz-skills/lib/llm-critic.sh --list        # покаже три слоти + бекенди
+bash ~/tz-skills/lib/llm-critic.sh --smoke-all   # кожен слот має відповісти: slot '...' OK
+```
+
+Якщо якийсь слот падає:
+- `... backend claude-cli but 'claude' not on PATH` → CLI не встановлено/не в PATH.
+- `env $NVIDIA_API_KEY is empty` → не встановив ключ (перезапусти термінал).
+- `HTTP 404` → неправильний/делістнутий `model`; онови id.
+- `HTTP 401` → неправильний ключ.
+
+**Не запускай скіли, поки `--smoke-all` не зелений на всіх трьох слотах** — уся суть у трьох
+робочих незалежних критиках.
+
+---
+
+## Крок 6. Користуйся у Claude Code
+
+Перед тим, як давати Claude велике завдання — прожени ТЗ:
+
+```
+/tz-review шлях/до/твого_ТЗ.md
+```
+
+Після того, як Claude сказав «готово» — перевір, що воно реально зроблено:
+
+```
+/tz-verify шлях/до/твого_ТЗ.md
+```
+
+За замовчуванням `/tz-verify` порівнює гілку з `main` (`main..HEAD`). Якщо в тебе інша
+базова гілка — додай `--diff master..HEAD` (чи яка в тебе).
+
+> Скажи Claude на початку сесії, де лежить диспетчер, якщо він не в стандартному місці,
+> напр.: «llm-critic.sh лежить у ~/tz-skills/lib/llm-critic.sh». Скіли самі його викликають.
+
+---
+
+## Часті питання
+
+**Чи обов'язкові всі три різні вендори?** Так. Два слоти на одній моделі = ехо, а не
+перевірка. Мінімум — Claude + два різні безкоштовні NIM (Профіль A).
+
+**Мої дані кудись відправляються?** CLI-бекенди працюють локально. API-бекенди
+(OpenRouter/NIM) відправляють текст ТЗ/дифу на сервер провайдера. Секрети скіл вирізає
+автоматично, але не наводь API-слот на репозиторій із живими паролями. Хочеш повністю
+локально — став профіль лише з CLI.
+
+**Скільки це коштує?** Профіль A — $0 (NIM безкоштовний, Claude — твоя підписка). OpenRouter —
+платиш за токени; один прогін `/tz-verify` великого ТЗ може бути десятки тисяч токенів.
+
+**Fanout-режим (`--fanout`) для великих ТЗ** потребує саме `claude` CLI (він спавнить
+воркери). Якщо його нема — не додавай `--fanout`, працює звичайний послідовний режим.

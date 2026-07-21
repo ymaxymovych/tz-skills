@@ -1,0 +1,24 @@
+# Never commit a real provider config — it references your API-key env vars and
+# is per-machine. Only providers.example.json is tracked.
+providers.json
+tz-providers.json
+
+# Secrets / env
+.env
+.env.*
+*.key
+*_key
+*.pem
+
+# Runtime output of the skills
+/.ai-context/reviews/
+/.ai-context/verifications/
+/docs/reviews/
+/docs/verifications/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

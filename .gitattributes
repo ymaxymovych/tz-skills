@@ -1,0 +1,6 @@
+# Shell scripts MUST be LF — CRLF breaks them on macOS/Linux (`bad interpreter`).
+*.sh    text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+LICENSE text eol=lf
+VERSION text eol=lf
