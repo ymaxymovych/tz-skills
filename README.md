@@ -1,9 +1,22 @@
 # TZ Skills — крос-перевірка технічних завдань для Claude Code
 
-> **EN (short):** Two [Claude Code](https://docs.claude.com/en/docs/claude-code) skills that cross-check your specs with **three independent LLMs of different vendors** — so "Claude said it's done" actually means done. `/tz-review` audits a spec **before** implementation; `/tz-verify` checks it was truly implemented **after**. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
+> **EN (short):** Three [Claude Code](https://docs.claude.com/en/docs/claude-code) skills that take a raw idea to a verified implementation: `/tz-draft` interviews you (business questions only) and writes the spec; `/tz-review` audits it with **three independent LLMs of different vendors** before implementation; `/tz-verify` checks it was truly implemented after. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
 
-Два скіли для Claude Code, які прибирають головну проблему AI-розробки:
+Три скіли для Claude Code, які прибирають головну проблему AI-розробки:
 **Claude каже «зробив», а насправді відхилився від задачі або пропустив половину.**
+
+```
+сира ідея → /tz-draft → /tz-review → реалізація → /tz-verify
+           (інтерв'ю)   (аудит ТЗ)                 (перевірка виконання)
+```
+
+- **`/tz-draft`** — **випитує бізнес-логіку ДО написання ТЗ**: по одному питанню за раз
+  (бюджет ~7), з варіантами відповідей, і **тільки про бізнес** — хто користувач, що таке
+  успіх, що з грошима, що поза scope. Технічних питань не ставить принципово: ОС, сервер,
+  базу, фреймворк агент вирішує сам і записує у ТЗ окремою секцією «рішення за
+  замовчуванням», яку можна ветувати. Результат — повний драфт ТЗ з критеріями приймання.
+  Методологія адаптована з [Superpowers brainstorming](https://github.com/obra/superpowers) (MIT),
+  звужена до бізнес-логіки.
 
 - **`/tz-review`** — перевіряє **технічне завдання (ТЗ) ПЕРЕД** тим, як віддати його в роботу.
   Три незалежні LLM читають ТЗ за фіксованим чек-листом з 11 категорій (безпека, дані,
@@ -51,7 +64,7 @@ chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
 
 # 2. Поставити скіли у Claude Code
 mkdir -p ~/.claude/skills
-cp -r skills/tz-review skills/tz-verify ~/.claude/skills/
+cp -r skills/tz-draft skills/tz-review skills/tz-verify ~/.claude/skills/
 
 # 3. Налаштувати провайдерів
 cp providers.example.json ~/.claude/tz-providers.json
@@ -61,6 +74,7 @@ cp providers.example.json ~/.claude/tz-providers.json
 bash lib/llm-critic.sh --smoke-all      # усі три слоти → OK
 
 # 5. Користуватись у Claude Code:
+#    /tz-draft  опиши ідею       (ще немає ТЗ — інтерв'ю і драфт)
 #    /tz-review шлях/до/ТЗ.md    (перед роботою)
 #    /tz-verify шлях/до/ТЗ.md    (після роботи)
 ```
