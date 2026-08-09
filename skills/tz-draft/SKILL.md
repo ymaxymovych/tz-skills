@@ -1,150 +1,195 @@
 ---
 name: tz-draft
-description: Interview the user about BUSINESS logic only (one question at a time, max ~7 questions, multiple-choice preferred) and turn the answers into a complete TZ draft with acceptance criteria, ready for /tz-review. Technical choices (OS, server, DB, framework, libraries, architecture) are NEVER asked — the agent decides them itself and records them in the draft as overridable defaults. Invoke when the user brings a raw idea, a vague feature request, or says "напиши ТЗ" / "draft a spec" before any TZ exists.
+description: Take the user's rough TZ draft (or raw idea), open by stating the Job-to-be-Done as you read it, then interrogate the BUSINESS logic gaps — one question at a time, each question ALREADY ANSWERED by you with the recommended option and why it's right, so the user only confirms or corrects. Every message ends with the code word «ФІНІШ» — typing it accepts all your remaining recommended answers and produces the final TZ, ready for /tz-review. Technical choices (OS, server, DB, framework) are NEVER asked — the agent decides them and records them as vetoable defaults. Invoke when the user brings a draft TZ, a raw idea, or says "прожени ТЗ" / "напиши ТЗ".
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# TZ Draft — business-logic elicitation before the spec exists
+# TZ Draft — answer-first business elicitation over a rough spec
 
 Upstream companion to `/tz-review` and `/tz-verify`. The pipeline is:
 
 ```
-raw idea → /tz-draft (this skill: interview → TZ draft)
-         → /tz-review (3 critics audit the TZ)
-         → implementation
-         → /tz-verify (3 critics verify it was built)
+чернетка ТЗ (або ідея) → /tz-draft (JTBD → питання-з-відповідями → повне ТЗ)
+                       → /tz-review (3 критики аудитують ТЗ)
+                       → реалізація
+                       → /tz-verify (3 критики перевіряють виконання)
 ```
 
-Methodology adapted from the Superpowers `brainstorming` skill (obra/superpowers, MIT):
-one question at a time, multiple-choice when possible, ruthless YAGNI, design validated
-in sections. Narrowed here to **business logic only** — the single biggest failure mode
-this skill prevents is an agent that either (a) interrogates a non-technical founder
-about servers and databases, or (b) silently invents business rules nobody asked for.
+Methodology adapted from the Superpowers `brainstorming` skill (obra/superpowers, MIT) —
+one question at a time, multiple-choice, YAGNI, validate-before-writing — with two
+narrowings: **business logic only**, and **answer-first**: the agent never asks a bare
+question; it asks AND proposes the single best answer with reasoning, so the user's
+minimum viable participation is the word «так».
 
-## The one hard rule
+## The two hard rules
 
-**You may ask the user ONLY about business logic. You may NEVER ask about technology.**
+**Rule 1 — business only.** You may ask the user ONLY about business logic. Never about technology.
 
-| ✅ ASK about (business) | ❌ NEVER ASK about (technical — decide yourself) |
+| ✅ ASK about (business) | ❌ NEVER ASK (technical — decide yourself) |
 |---|---|
-| Who uses this? What job does it do for them? | OS, hosting, server, cloud provider |
-| What does "success" look like, in numbers if possible? | Database, schema, ORM |
-| What must happen when X pays / cancels / fails? | Language, framework, library choice |
-| Who is allowed to see/do what? (roles, in business terms) | Architecture, API shape, file naming |
-| What is explicitly OUT of scope for v1? | Auth mechanism, token format |
-| What already exists that this must not break? | Deployment, CI, testing strategy |
-| Edge cases in business terms ("what if the client has two contracts?") | Rate limits, caching, queues |
-| Priorities: which half ships first if we must cut? | Any "which tool" question |
+| Who uses this? What job does it do for them? | OS, hosting, server, cloud |
+| What does "success" look like, in numbers? | Database, schema, ORM |
+| What happens when X pays / cancels / fails? | Language, framework, library |
+| Who may see/do what? (roles, business terms) | Architecture, API shape |
+| What is explicitly OUT of scope for v1? | Auth mechanism, tokens |
+| What existing flows must this not break? | Deployment, CI, testing strategy |
+| Business edge cases ("клієнт має два контракти?") | Rate limits, caching, queues |
+| Priorities: which half ships first if we cut? | Any "which tool" question |
 
-Every technical decision you would have asked about — make it yourself, pick the
-boring/standard option for this codebase, and record it in the draft under
-**"Технічні рішення за замовчуванням"** with one line of reasoning each. The user can
-veto any of them by reading the draft; they should never have to answer them live.
+Every technical decision you would have asked — make it yourself (boring/standard option
+for this codebase) and record it in the TZ under **«Технічні рішення за замовчуванням»**
+with one line of reasoning. Vetoable by reading, never asked live.
+
+**Rule 2 — answer-first.** Every question you ask must arrive WITH your recommended answer
+and the reason it is the most correct one. A bare question mark is a protocol violation.
+The user's job is to confirm, correct, or type the code word — not to think from zero.
 
 ## Interview protocol
 
-### Step 0 — Look before asking
+### Step 0 — Ingest what was brought
 
-Before the first question, spend 2-3 minutes grounding yourself so you don't ask what
-you can answer:
-- Read the codebase enough to know what already exists (grep for the feature area,
-  read the relevant models/routes). A question the code already answers is spam.
-- Locate `{TZ_DIR}` per the `/tz-review` convention (`.ai-context/` → else `docs/specs/`
-  or `docs/tz/` → else create `docs/tz/`).
-- If the user's opening message already answers something — never re-ask it.
+The normal input is a **draft TZ the user already wrote somewhere** (file path or pasted
+text). Also accepted: a raw idea in a few sentences.
 
-### Step 1 — Ask, one at a time
+1. Read the draft carefully. Read the codebase around the feature area (grep models,
+   routes, existing flows) — a question the draft or the code already answers is spam.
+2. Locate `{TZ_DIR}` per the `/tz-review` convention (`.ai-context/` → else `docs/specs/`
+   or `docs/tz/` → else create `docs/tz/`).
+3. Build the gap list: which business questions the draft leaves unanswered, ordered by
+   the cost of guessing wrong (money flows and permissions first, cosmetics never).
+   Budget: **~7 questions, hard cap 10.**
 
-- **One question per message. Never a numbered list of questions.** (Superpowers rule —
-  batched questions get half-answered and the gaps go unnoticed.)
-- **Multiple-choice whenever the option space is guessable**, with your recommended
-  option first and marked. Open-ended only when you genuinely can't enumerate.
-- **Budget: ~7 questions, hard cap 10.** This is an interview, not an interrogation.
-  Order questions by how much a wrong guess would cost — money flows and permissions
-  first, cosmetics never.
-- **The user can stop anytime** ("досить", "далі сам", "just draft it") → immediately
-  stop asking, fill remaining gaps with clearly-marked assumptions, and proceed to Step 2.
-- If an answer reveals the request is actually two projects → say so, ask which one is v1,
-  and scope the draft to that one (YAGNI).
+### Step 1 — Open with the Job-to-be-Done (always first, before any question)
 
-Good first question is almost always some form of: *"Хто цим користуватиметься і яку
-проблему це для нього закриває?"* — unless the opening message already answered it.
+Your first message states, in 3-5 lines, the JTBD as you read it from the draft:
 
-### Step 2 — Propose the shape, get one approval
+```
+📋 Як я зрозумів задачу (JTBD):
+Коли [ситуація], [хто] хоче [що зробити], щоб [бізнес-результат/прогрес].
+Успіх виглядає так: [метрика/спостережуваний наслідок].
 
-Before writing the full TZ, present a **5-10 line summary**: goal, user, core flow,
-explicit non-goals, the 2-3 riskiest business rules as you understood them. If there were
-2-3 genuinely different ways to fulfil the request, present them here with trade-offs and
-your recommendation (Superpowers pattern) — but only if the difference is visible to the
-BUSINESS, not merely architectural.
-
-Ask exactly one thing: **"Так — пишу повне ТЗ? Чи щось із цього не так?"**
-Iterate on the summary until approved. Do not write the full document before approval —
-a wrong summary costs one message to fix; a wrong 300-line TZ costs an evening.
-
-### Step 3 — Write the draft
-
-Write `{TZ_DIR}/TZ_{slug}.md`:
-
-```markdown
-# TZ: {назва} (draft v1 — /tz-draft, {date})
-
-## 1. Мета і бізнес-контекст
-{чию проблему вирішуємо, чому зараз, як міряємо успіх}
-
-## 2. Користувачі та ролі
-{хто, що кому дозволено — бізнес-термінами}
-
-## 3. Основний сценарій
-{крок за кроком очима користувача}
-
-## 4. Бізнес-правила
-{гроші, доступи, ліміти, дедлайни — все, що випитано; нумеровані, по одному правилу на пункт}
-
-## 5. Крайні випадки (бізнес)
-{що робимо коли: подвійна оплата, скасування, порожні дані, конфлікт...}
-
-## 6. Поза scope v1
-{явний список того, що НЕ робимо — з відповідей і YAGNI-зрізань}
-
-## 7. Acceptance Criteria
-{AC-1..AC-N — кожен перевірний, у форматі, який /tz-verify зможе розібрати;
- один критерій = одне твердження, без "and"}
-
-## 8. Технічні рішення за замовчуванням (прийняв агент — можна ветувати)
-{кожен рядок: рішення + 1 речення чому; сюди йде ВСЕ, про що ти НЕ питав}
-
-## 9. Відкриті ризики
-{що лишилось невідомим; припущення, зроблені після "досить"— позначені ⚠️ ПРИПУЩЕННЯ}
+Це правильне прочитання? («так» / поправ мене / «ФІНІШ»)
 ```
 
-Section 7 is the contract with `/tz-verify` — write each AC so it can be judged
-done/missing against a diff. Section 8 is the contract with the no-tech-questions rule —
-it's where your technical autonomy becomes visible and vetoable instead of silent.
+This is question #0 and the cheapest place to catch a wrong direction. If the user
+corrects it — the correction reorders your gap list before you continue.
 
-### Step 4 — Hand off
+### Step 2 — Questions, answer-first, one at a time
 
-Tell the user in 2-3 lines: draft is at `{path}`, what the ⚠️ assumptions are (if any),
-and that the next step is `/tz-review {path}` when they're ready. Do NOT auto-run
-`/tz-review` — it is expensive; the user triggers it.
+**One question per message. Never a list.** Each message has this exact shape:
+
+```
+Питання {N}/{budget}: {питання}
+
+Чому питаю: {1-2 речення — що зламається в бізнесі, якщо вгадати неправильно}
+
+Варіанти:
+  a) {варіант}
+  b) {варіант}
+  c) {варіант}
+
+✅ Моя відповідь: {літера}) — {чому саме вона найправильніша: 1-3 речення,
+   з опорою на драфт/кодову базу/здоровий глузд}
+
+— «так» = приймаємо мою відповідь, іду далі
+— або дай свою відповідь / поправку
+— «ФІНІШ» = приймаєш мої відповіді на ВСІ питання, що лишились, і я одразу пишу ТЗ
+```
+
+Mechanics:
+- User says «так» (or anything affirmative) → lock the answer, next question.
+- User gives a different answer → lock THEIR answer, next question. Never argue twice:
+  you may push back ONCE if their answer creates a concrete business risk, then accept.
+- If an answer reveals the request is really two projects → say so, propose which is v1,
+  scope to it (YAGNI).
+- The **last question of every interview is a pre-mortem** (counts inside the budget):
+  *"Уяви: місяць після запуску, фіча провалилась. Найімовірніша причина?"* — with your
+  proposed answer. Whatever the user confirms lands in «Відкриті ризики».
+
+### The code word — «ФІНІШ»
+
+The interrupt contract, printed at the end of EVERY message of this skill (JTBD opening,
+every question, every clarification):
+
+> Напишіть **«ФІНІШ»** — я прийму власні запропоновані відповіді на всі питання, що
+> лишились, одразу напишу повне ТЗ і дам команду для наступного кроку (`/tz-review`).
+
+Semantics of «ФІНІШ»:
+- Stop asking immediately. Zero further questions.
+- All remaining gap-list questions are auto-resolved with YOUR recommended answers.
+- In the TZ, human-confirmed rules are written plainly; auto-accepted ones are marked
+  **«✅ авто-прийнято (ФІНІШ)»** — so the user can later scan exactly what they delegated.
+- Anything you genuinely could not answer even yourself → **«⚠️ ПРИПУЩЕННЯ»** in
+  «Відкриті ризики».
+
+Also treat as ФІНІШ: "досить", "далі сам", "just draft it", "переходь до рев'ю" — any
+clear stop signal. The explicit footer exists so the user never has to wonder HOW to
+stop you; but you must recognize informal stops too.
+
+### Step 3 — Summary gate, then the document
+
+After the interview (completed or ФІНІШed), post a **5-10 line summary**: goal, user,
+core flow, non-goals, the 2-3 riskiest confirmed business rules. One question only:
+**«Так — пишу повне ТЗ?»** (with the ФІНІШ footer; ФІНІШ here means "yes, write it").
+A wrong summary costs one message; a wrong 300-line TZ costs an evening.
+
+### Step 4 — Write `{TZ_DIR}/TZ_{slug}.md`
+
+```markdown
+# TZ: {назва} (v2 — після /tz-draft, {date}; v1 = чернетка користувача)
+
+## 1. Мета і JTBD
+{підтверджене у Step 1 формулювання + метрика успіху}
+
+## 2. Користувачі та ролі
+## 3. Основний сценарій        {крок за кроком очима користувача}
+## 4. Бізнес-правила           {нумеровані; кожне позначене: підтверджено / ✅ авто-прийнято (ФІНІШ)}
+## 5. Крайні випадки (бізнес)
+## 6. Поза scope v1            {явні відмови + YAGNI-зрізання}
+## 7. Порядок реалізації       {2-4 фази, кожна закінчується чимось ПРАЦЮЮЧИМ,
+                                фаза 1 = найтонший наскрізний зріз (walking skeleton)}
+## 8. Acceptance Criteria      {AC-1..N; один критерій = одне перевірне твердження без "and";
+                                формат, який /tz-verify зможе розібрати}
+## 9. Технічні рішення за замовчуванням  {все, про що ти НЕ питав: рішення + 1 речення чому}
+## 10. Відкриті ризики         {pre-mortem результат + ⚠️ ПРИПУЩЕННЯ}
+```
+
+Section 8 is the contract with `/tz-verify`. Section 9 is where your technical autonomy
+becomes visible and vetoable instead of silent. Section 7 keeps implementation honest —
+phases end in something demonstrable, not "60% of everything".
+
+### Step 5 — Hand off
+
+Close with exactly this shape:
+
+```
+✅ ТЗ готове: {path}
+{якщо були авто-прийняті: N правил прийнято автоматично — розділ 4, позначені ✅}
+{якщо були припущення: ⚠️ перевір розділ 10}
+
+Наступний крок — технічний аудит трьома незалежними моделями:
+/tz-review {path}
+```
+
+Do NOT auto-run `/tz-review` — it is expensive; the user triggers it.
 
 ## Anti-patterns
 
-- Asking two questions in one message. One. Always one.
-- Asking anything from the ❌ column — if you catch yourself typing "яку базу даних…", stop,
-  decide it yourself, put it in section 8.
-- Asking questions whose answer is already in the user's first message or in the codebase.
-- Writing the full TZ before the Step 2 summary is approved.
-- Inventing business rules that were neither asked about nor answered — every rule in
-  section 4 must trace to an answer or be flagged ⚠️ ПРИПУЩЕННЯ in section 9.
-- Dragging past the question budget because "one more would make it perfect". Ship the
-  draft; `/tz-review` exists precisely to catch what the interview missed.
-- Turning this into architecture brainstorming. Business shape only; architecture is
-  implementation's job.
+- A question without your proposed answer and reasoning. (The core protocol violation.)
+- Two questions in one message.
+- Asking anything from the ❌ column — catch yourself, decide it, section 9.
+- Asking what the draft or the codebase already answers.
+- Arguing with the user's answer more than once.
+- A message without the «ФІНІШ» footer — the user must always see the exit.
+- Ignoring an informal stop signal because it wasn't the literal code word.
+- Writing the full TZ before the Step 3 summary is approved.
+- Inventing business rules that trace to no answer — everything in section 4 is either
+  confirmed, ✅ авто-прийнято, or it doesn't exist.
+- Dragging past the budget. `/tz-review` exists to catch what the interview missed.
 
 ## When NOT to invoke
 
-- A TZ already exists → go straight to `/tz-review`.
-- The request is a bugfix or trivial change → just do it, no interview.
-- The user gave an already-complete spec in the message → write it up (Step 3) and skip
-  the interview entirely, noting "інтерв'ю пропущено — вхід був повний".
+- The TZ is already complete and confirmed → straight to `/tz-review`.
+- Bugfix or trivial change → just do it, no interview.
+- The input already answers your whole gap list → skip to Step 3 summary, note
+  "інтерв'ю пропущено — чернетка була повна", still open with the JTBD statement.
