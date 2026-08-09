@@ -1,6 +1,6 @@
 ---
 name: tz-draft
-description: Turn the user's free-flow spoken monologue (10-15 min of dictated thoughts) or rough TZ draft into a complete, structured TZ — WITHOUT interrogating them. The skill structures what was said first, states the Job-to-be-Done back, and asks ONLY the questions it genuinely cannot answer itself with high confidence (typically 0-3, hard cap 7) — each question arriving WITH the recommended answer and why it's right, so the user only confirms. «ФІНІШ» at any moment accepts all recommended answers and produces the strengthened TZ immediately. Technical choices are never asked; the TZ always embeds the instruction for the implementing agent to work in an isolated git worktree. Invoke when the user dictates an idea, brings a draft TZ, or says "допоможи зробити ТЗ" / "прожени ТЗ".
+description: Turn the user's free-flow spoken monologue (10-15 min of dictated thoughts) or rough TZ draft into a complete, structured TZ — WITHOUT interrogating them. The skill structures what was said first, then sends ONE message containing the Job-to-be-Done readback plus ALL its questions as a single batch (typically 0-3, hard cap 7) — each question arriving WITH the recommended answer and why it's right. The user answers everything in one reply («1а, 2 так, 3 своя відповідь…»); skipped questions automatically take the recommendation. «ФІНІШ» at any moment accepts all recommended answers and produces the strengthened TZ immediately. Batching is deliberate token economy: every extra Q-A round forces a re-read of the whole chat history. Technical choices are never asked; the TZ always embeds the instruction for the implementing agent to work in an isolated git worktree. Invoke when the user dictates an idea, brings a draft TZ, or says "допоможи зробити ТЗ" / "прожени ТЗ".
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -18,9 +18,11 @@ Upstream companion to `/tz-review` and `/tz-verify`. The pipeline is:
 **Attribution.** The core concept — flow-dictation first, structure second, questions last
 and only for genuine unknowns; answer-first questioning; the «ФІНІШ» code-word exit;
 strengthening an EXISTING draft rather than writing from scratch — is by this pack's
-author. Only low-level question mechanics (one question at a time, options offered,
-YAGNI, validate-before-writing) are adapted from the Superpowers `brainstorming` skill
-(obra/superpowers, MIT).
+author. Only low-level question mechanics (options offered, YAGNI,
+validate-before-writing) are adapted from the Superpowers `brainstorming` skill
+(obra/superpowers, MIT). Superpowers' one-question-at-a-time rule is deliberately
+REPLACED here by single-batch questioning — see Step 1 for why that is safe in this
+design and cheaper in tokens.
 
 ## The philosophy: dictation beats interrogation
 
@@ -87,48 +89,77 @@ Do NOT interrupt a monologue with questions. When it's done:
   become your own recorded decisions. What survives (typically 0-3 items) is the
   interview, ordered by cost-of-guessing-wrong.
 
-### Step 1 — State the Job-to-be-Done (always, before any question)
+### Step 1 — ONE opening message: JTBD + попередження + ВЕСЬ батч питань
+
+**Всі питання йдуть ОДНИМ повідомленням, не по одному.** Причина — економіка токенів:
+кожен додатковий раунд «питання → відповідь» змушує модель перечитувати всю історію
+чату заново (кеш пом'якшує це, але не скасовує — і між повільними людськими
+відповідями він встигає протухнути). Батч з N питань замість N раундів économить
+N-1 повних перечитувань історії.
+
+**Чому батч тут безпечний (а в класичних інтерв'ю — ні).** У класичному інтерв'ю з
+голими питаннями батч мовчки губить відповіді: людина відповіла на 3 з 7, і ніхто не
+помітив. Тут КОЖНЕ питання несе рекомендовану відповідь — пропущене питання
+автоматично отримує її з позначкою «✅ авто-прийнято» в ТЗ. Батч не втрачає нічого.
+
+The opening message contains, in this order:
+
+**1. JTBD readback:**
 
 ```
 📋 Як я зрозумів задачу (JTBD):
 Коли [ситуація], [хто] хоче [що зробити], щоб [бізнес-результат].
 Успіх виглядає так: [метрика/спостережуваний наслідок].
 
-Це правильне прочитання? («так» / поправ мене / «ФІНІШ»)
+Якщо прочитання неправильне — поправ мене ПЕРШИМ рядком відповіді, це найдешевше
+місце зловити хибний напрям.
 ```
 
-The cheapest place to catch a wrong direction. A correction here reorders the gap list.
-
-### Step 2 — The leftover questions (0-3 typical, 7 max), answer-first
-
-One question per message, this exact shape:
+**2. Обов'язкове попередження про батч** (перед питаннями, дослівно за змістом):
 
 ```
-Питання {N}/{кількість}: {питання}
+⚠️ Нижче — ВСІ мої питання одним блоком (їх {N}). Це свідомо: кожен окремий раунд
+«питання-відповідь» змушує мене перечитувати всю історію чату і палить токени.
+Відповідай, будь ласка, ОДНИМ повідомленням, наприклад: «1а, 2 так, 3 своя
+відповідь: …, 4 так». Пропустиш якесь питання — не страшно: я візьму свою
+рекомендовану відповідь. Напишеш «ФІНІШ» — приймаю свої рекомендації на ВСІ
+питання одразу і видаю ТЗ.
+```
 
+**3. Батч питань** (кожне answer-first, той самий формат):
+
+```
+Питання {N}: {питання}
 Чому питаю: {що зламається в бізнесі, якщо вгадати неправильно, і чому я не можу
 вивести відповідь сам}
-
 Варіанти:
   a) {варіант}
   b) {варіант}
   c) {варіант}
-
 ✅ Рекомендую: {літера}) — {чому саме вона найправильніша: 1-3 речення}
-
-— «так» = приймаємо, йду далі
-— або своя відповідь / поправка
-— «ФІНІШ» = приймаєш мої рекомендації на все, що лишилось, і я одразу видаю ТЗ
 ```
 
-- «так» → lock, next. Інша відповідь → lock THEIRS, next (може заперечити РАЗ, якщо
-  відповідь створює конкретний бізнес-ризик, потім прийняти).
-- Якщо відповіді розкрили, що це два проєкти → сказати, запропонувати який з них v1 (YAGNI).
-- Якщо після гейта питань ≥3 — останнім (у межах бюджету) йде **pre-mortem**: «Уяви:
-  місяць після запуску, фіча провалилась. Найімовірніша причина?» — теж зі своєю
+**4. ФІНІШ footer** (як завжди).
+
+Rules:
+- Якщо після гейта питань ≥3 — останнім у батчі йде **pre-mortem**: «Уяви: місяць
+  після запуску, фіча провалилась. Найімовірніша причина?» — теж зі своєю
   рекомендованою відповіддю. Результат → «Відкриті ризики».
-- Якщо після гейта питань НУЛЬ — так і сказати: «Питань не маю, надиктоване повне» — і
-  одразу до Step 3.
+- Якщо після гейта питань НУЛЬ — попередження про батч не потрібне: «Питань не маю,
+  надиктоване повне» + JTBD + одразу до Step 3.
+- Hard cap 7 питань у батчі. Другого батчу НЕ буває — що не влізло в перший, вирішуй
+  сам за confidence gate.
+
+### Step 2 — Process the single reply
+
+- Пронумеровані відповіді користувача → lock THEIRS (можеш заперечити РАЗ, якщо
+  відповідь створює конкретний бізнес-ризик, потім прийняти).
+- Пропущені питання → lock YOUR recommendation, позначка «✅ авто-прийнято» в ТЗ.
+- Відповіді суперечать одна одній або перевертають JTBD → ОДНЕ уточнювальне
+  повідомлення (тільки про суперечність), потім видача. Це єдиний легальний
+  додатковий раунд.
+- Якщо відповіді розкрили, що це два проєкти → сказати, запропонувати який з них v1
+  (YAGNI) — у тому самому повідомленні, що й видача.
 
 ### The code word — «ФІНІШ»
 
@@ -144,11 +175,17 @@ produce the TZ (Step 4) immediately. Auto-accepted rules are marked
 «переходь до рев'ю») count as ФІНІШ too — the footer exists so the user never has to
 wonder HOW to stop you, not to make the literal word mandatory.
 
-### Step 3 — Summary gate
+### Step 3 — Summary + TZ in ONE message (no extra confirmation round)
 
-Post a **5-10 line summary**: goal, user, core flow, non-goals, the 2-3 riskiest business
-rules as confirmed. One question: **«Так — оформлюю ТЗ?»** (ФІНІШ = «так, оформлюй»).
-A wrong summary costs one message; a wrong 300-line document costs an evening.
+Після обробки відповідей — НЕ окремий підтверджувальний раунд. Одним повідомленням:
+**коротке резюме (5-8 рядків)** — мета, користувач, ядро сценарію, non-goals, 2-3
+найризиковіші бізнес-правила з позначками звідки вони (відповідь / ✅ авто-прийнято) —
+і ОДРАЗУ під ним підсилене ТЗ (Step 4). Резюме — це зміст-навігація для людини, а не
+гейт: усі спірні місця вже або підтверджені відповідями, або чесно позначені
+✅/⚠️ у документі, тож помилка виправляється правкою, а не ще одним раундом.
+
+Виняток (єдиний): відповіді суперечливі чи перевернули JTBD → одне уточнення
+(див. Step 2), потім видача.
 
 ### Step 4 — Produce the strengthened TZ (EDIT, don't replace)
 
@@ -213,12 +250,17 @@ Do NOT auto-run `/tz-review` — it is expensive; the user triggers it.
 - **Asking a question you could answer yourself with high confidence** — the #1 way this
   skill becomes annoying. The confidence gate is not optional.
 - A question without a recommended answer AND the reasoning why it's the most correct one.
-- Two questions in one message.
+- **Розсипати питання по окремих повідомленнях** — кожен зайвий раунд = повторне
+  перечитування всієї історії чату. Всі питання — одним батчем в одному повідомленні.
+- Батч без попередження «відповідай одним повідомленням; пропущене → візьму свою
+  рекомендацію» — людина мусить знати правила гри ДО того, як на неї впаде блок питань.
+- Другий батч питань після першого — що не влізло, вирішуй сам (confidence gate).
 - Anything from the ❌ column — catch yourself, decide it, розділ 9.
 - Interrupting the dictation.
 - A message without the «ФІНІШ» footer.
 - Ignoring an informal stop because it wasn't the literal code word.
-- Editing/producing the TZ before the Step 3 summary is approved.
+- Зайвий підтверджувальний раунд перед видачею ТЗ, коли відповіді несуперечливі —
+  резюме і ТЗ ідуть одним повідомленням.
 - Rewriting the user's sound text with your own phrasing — insert and augment; their
   words are the backbone, you are the reinforcement.
 - Inventing business rules that trace to nothing — everything in розділ 4 is confirmed,

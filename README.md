@@ -1,6 +1,6 @@
 # TZ Skills — крос-перевірка технічних завдань для Claude Code
 
-> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — each with a recommended answer (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors**; `/tz-verify` checks it was truly implemented. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
+> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — all in ONE batched message (token economy), each with a recommended answer; skipped answers auto-take the recommendation (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors**; `/tz-verify` checks it was truly implemented. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
 
 Конвеєр скілів для Claude Code, який прибирає головну проблему AI-розробки:
 **Claude каже «зробив», а насправді відхилився від задачі або пропустив половину.**
@@ -15,9 +15,12 @@
 - **`/tz-draft`** — **виговорюєшся 10-15 хвилин у вільному потоці** (або приносиш чернетку
   ТЗ) — скіл слухає не перебиваючи, впорядковує сказане, каже, як він зрозумів
   **Job-to-be-Done**, і питає **лише те, на що сам не може відповісти з високою
-  впевненістю** (типово 0-3 питання, максимум 7). Кожне питання приходить **уже з
-  рекомендованою відповіддю і поясненням, чому вона найправильніша** — тобі досить
-  казати «так»; варіанти поруч існують лише щоб незгода коштувала одну літеру. **Тільки
+  впевненістю** (типово 0-3 питання, максимум 7). Усі питання приходять **ОДНИМ
+  повідомленням-батчем** — це свідома економія токенів: кожен окремий раунд
+  «питання-відповідь» змушує модель перечитувати всю історію чату. Кожне питання в
+  батчі — **уже з рекомендованою відповіддю і поясненням, чому вона найправильніша**;
+  відповідаєш одним повідомленням («1а, 2 так, 3 своя відповідь…»), а **пропущені
+  питання автоматично беруть рекомендацію** (позначка ✅ у ТЗ). **Тільки
   бізнес-питання**; технічне (ОС, сервер, база, фреймворк) агент вирішує сам і записує у
   ТЗ секцією «рішення за замовчуванням». У кінці кожного повідомлення — кодове слово
   **«ФІНІШ»**: пишеш його — скіл приймає власні рекомендації на все, що лишилось, і
