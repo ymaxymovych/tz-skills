@@ -24,7 +24,7 @@ openssl version        # має бути (в Git Bash є)
 ```bash
 git clone https://github.com/ymaxymovych/tz-skills.git ~/tz-skills
 cd ~/tz-skills
-chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
+chmod +x lib/llm-critic.sh lib/tz-skills-update.sh skills/tz-verify/fanout-dispatch.sh
 ```
 
 > Немає git? Завантаж ZIP зі сторінки репозиторію (кнопка **Code → Download ZIP**) і розпакуй
@@ -34,16 +34,17 @@ chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
 
 ## Крок 2. Встанови скіли у Claude Code
 
-Claude Code шукає скіли у `~/.claude/skills/`. Скопіюй туди всі теки скілів:
+Claude Code шукає скіли у `~/.claude/skills/`. Одна команда ставить їх туди:
 
 ```bash
-mkdir -p ~/.claude/skills
-cp -r ~/tz-skills/skills/tz-draft   ~/.claude/skills/
-cp -r ~/tz-skills/skills/tz-review  ~/.claude/skills/
-cp -r ~/tz-skills/skills/tz-verify  ~/.claude/skills/
+bash ~/tz-skills/lib/tz-skills-update.sh
 ```
 
 Після цього у Claude Code стануть доступні команди `/tz-draft`, `/tz-review`, `/tz-verify`.
+
+> Це та сама команда, якою ти потім **оновлюватимешся** (див. «Як оновлюватись» у
+> кінці). Шлях встановлення й шлях оновлення навмисно один — два різні шляхи з часом
+> розходяться, і людина оновлює не те, що встановила.
 
 > `/tz-draft` не потребує ні `providers.json`, ні ключів — це інтерв'ю з тобою силами
 > самого Claude. Кроки 3–5 нижче потрібні лише для `/tz-review` та `/tz-verify`.
@@ -201,6 +202,51 @@ bash ~/tz-skills/lib/llm-critic.sh --smoke-all   # кожен слот має в
 > напр.: «llm-critic.sh лежить у ~/tz-skills/lib/llm-critic.sh». Скіли самі його викликають.
 
 ---
+
+## Як оновлюватись
+
+```bash
+bash ~/tz-skills/lib/tz-skills-update.sh
+```
+
+Ця команда стягує свіжу версію з GitHub **і** перевстановлює скіли — обидва кроки
+разом. Раз на місяць достатньо.
+
+Перевірити, не змінюючи нічого:
+
+```bash
+bash ~/tz-skills/lib/tz-skills-update.sh --check
+```
+
+### Чому перевірка складається з ДВОХ пунктів
+
+Встановлення — це копіювання скілів із клону в `~/.claude/skills/`. Тому «чи в мене
+свіжа версія» — насправді два різні питання:
+
+```
+GitHub  ←(1)→  твій клон ~/tz-skills  ←(2)→  скіли в ~/.claude/skills
+```
+
+- **(1)** клон відстав від GitHub — місяцями не робив `git pull`;
+- **(2)** інсталяція відстала від клону — `git pull` зробив, а скопіювати забув.
+
+Перевірка, яка дивиться лише на **(2)**, буде зеленою **назавжди**: клон роками
+стоїть на старому коміті, скіли йому відповідають — «усе свіже», а ти сидиш на
+торішній версії. Тому `--check` завжди ходить у мережу до GitHub і, якщо не
+достукався, каже про це прямо і повертає помилку — а не «все добре».
+
+| Що показує | Що це означає |
+|---|---|
+| `1/2 ✅` і `2/2 ✅` | усе свіже, можна працювати |
+| `1/2 ⚠️ Клон ВІДСТАВ` | на GitHub є новіша версія — запусти оновлення |
+| `2/2 ⚠️ Інсталяція ВІДСТАЛА` | клон свіжий, а скіли старі — запусти оновлення |
+| `❌ Не можу перевірити` | не достукався до GitHub. Це **не** «все свіже» — спробуй пізніше |
+
+Яка версія стоїть зараз:
+
+```bash
+bash ~/tz-skills/lib/tz-skills-update.sh --version
+```
 
 ## Часті питання
 

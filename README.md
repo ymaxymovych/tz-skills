@@ -78,11 +78,10 @@
 # 1. Клонувати
 git clone https://github.com/ymaxymovych/tz-skills.git ~/tz-skills
 cd ~/tz-skills
-chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
+chmod +x lib/llm-critic.sh lib/tz-skills-update.sh skills/tz-verify/fanout-dispatch.sh
 
-# 2. Поставити скіли у Claude Code
-mkdir -p ~/.claude/skills
-cp -r skills/tz-draft skills/tz-review skills/tz-verify ~/.claude/skills/
+# 2. Поставити скіли у Claude Code (ця ж команда потім і оновлює)
+bash lib/tz-skills-update.sh
 
 # 3. Налаштувати провайдерів
 cp providers.example.json ~/.claude/tz-providers.json
@@ -96,6 +95,18 @@ bash lib/llm-critic.sh --smoke-all      # усі три слоти → OK
 #    /tz-review шлях/до/ТЗ.md    (перед роботою)
 #    /tz-verify шлях/до/ТЗ.md    (після роботи)
 ```
+
+## Оновлення
+
+```bash
+bash ~/tz-skills/lib/tz-skills-update.sh          # стягнути свіже + перевстановити
+bash ~/tz-skills/lib/tz-skills-update.sh --check  # тільки перевірити
+```
+
+Перевірка свідомо звіряє **дві** ланки — `GitHub → клон` і `клон → інсталяція`. Перевірка,
+що дивиться лише на другу, зелена назавжди: старий клон вічно «відповідає» старій
+інсталяції. Якщо до GitHub достукатись не вдалося, `--check` каже про це і повертає
+помилку — мовчазного «все свіже» не буває. Деталі — [docs/SETUP.md](docs/SETUP.md#як-оновлюватись).
 
 ## Документація
 
