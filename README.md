@@ -1,13 +1,13 @@
 # TZ Skills — крос-перевірка технічних завдань для Claude Code
 
-> **EN (short):** Three [Claude Code](https://docs.claude.com/en/docs/claude-code) skills that take a raw idea to a verified implementation: `/tz-draft` interviews you (business questions only) and writes the spec; `/tz-review` audits it with **three independent LLMs of different vendors** before implementation; `/tz-verify` checks it was truly implemented after. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
+> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from rough spec to verified implementation: `/tz-draft` strengthens YOUR draft spec via answer-first business questions (type «ФІНІШ» to accept its answers and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors**; `/worktree-start` isolates the work; `/tz-verify` checks it was truly implemented; `/worktree-finish` lands the branch. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
 
-Три скіли для Claude Code, які прибирають головну проблему AI-розробки:
+Конвеєр скілів для Claude Code, який прибирає головну проблему AI-розробки:
 **Claude каже «зробив», а насправді відхилився від задачі або пропустив половину.**
 
 ```
-сира ідея → /tz-draft → /tz-review → реалізація → /tz-verify
-           (інтерв'ю)   (аудит ТЗ)                 (перевірка виконання)
+чернетка ТЗ → /tz-draft → /tz-review → /worktree-start → реалізація → /tz-verify → /worktree-finish
+              (підсилення) (аудит ТЗ)   (ізоляція)                     (перевірка)   (здача + прибирання)
 ```
 
 - **`/tz-draft`** — приносиш **свою чернетку ТЗ** (або сиру ідею), скіл спершу каже, як він
@@ -16,9 +16,11 @@
   досить казати «так». По одному питанню за раз (бюджет ~7), **тільки про бізнес**;
   технічне (ОС, сервер, база, фреймворк) агент вирішує сам і записує у ТЗ секцією
   «рішення за замовчуванням», яку можна ветувати. У кінці кожного повідомлення — кодове
-  слово **«ФІНІШ»**: пишеш його — скіл приймає власні відповіді на все, що лишилось,
-  одразу видає повне ТЗ і команду для `/tz-review`. Методологія адаптована з
-  [Superpowers brainstorming](https://github.com/obra/superpowers) (MIT), звужена до бізнес-логіки.
+  слово **«ФІНІШ»**: пишеш його — скіл приймає власні відповіді на все, що лишилось, і
+  одразу видає **підсилену версію ТВОГО ТЗ** (твій текст зберігається, прогалини
+  заповнюються, зміни перелічені у changelog вгорі документа) + команду для `/tz-review`.
+  Концепція — авторська; механіка питань адаптована з
+  [Superpowers brainstorming](https://github.com/obra/superpowers) (MIT).
 
 - **`/tz-review`** — перевіряє **технічне завдання (ТЗ) ПЕРЕД** тим, як віддати його в роботу.
   Три незалежні LLM читають ТЗ за фіксованим чек-листом з 11 категорій (безпека, дані,
@@ -30,6 +32,17 @@
   git-diff. Результат — вердикт з 5 рівнів
   (`BLOCK` / `FIX-FIRST` / `SAFE-TO-COMMIT` / `SAFE-TO-DEPLOY-AFTER-CHECK` / `INSUFFICIENT-EVIDENCE`)
   і чесний список: що зроблено, а що ні.
+
+- **`/worktree-start`** — перед реалізацією ізолює роботу у власному git worktree, щоб
+  паралельні Claude-сесії не затирали незакомічену роботу одна одної. Перевіряє, чи ти вже
+  не в worktree, ставить гілку `feat/{назва-ТЗ}`, ганяє baseline-перевірку до першої правки.
+
+- **`/worktree-finish`** — здача: спершу зелений гейт (тести/типи/лінт + вердикт
+  `/tz-verify`), потім меню «merge локально / push + PR / лишити», потім прибирання
+  worktree і гілки. Викинути незамерджену роботу можна ЛИШЕ написавши буквально слово
+  «discard». Обидва worktree-скіли адаптовані зі
+  [Superpowers](https://github.com/obra/superpowers) (`using-git-worktrees`,
+  `finishing-a-development-branch`, MIT).
 
 ## Чому це працює
 
@@ -66,7 +79,7 @@ chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
 
 # 2. Поставити скіли у Claude Code
 mkdir -p ~/.claude/skills
-cp -r skills/tz-draft skills/tz-review skills/tz-verify ~/.claude/skills/
+cp -r skills/tz-draft skills/tz-review skills/tz-verify skills/worktree-start skills/worktree-finish ~/.claude/skills/
 
 # 3. Налаштувати провайдерів
 cp providers.example.json ~/.claude/tz-providers.json

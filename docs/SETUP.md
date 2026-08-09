@@ -34,16 +34,18 @@ chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
 
 ## Крок 2. Встанови скіли у Claude Code
 
-Claude Code шукає скіли у `~/.claude/skills/`. Скопіюй туди всі три теки:
+Claude Code шукає скіли у `~/.claude/skills/`. Скопіюй туди всі теки скілів:
 
 ```bash
 mkdir -p ~/.claude/skills
 cp -r ~/tz-skills/skills/tz-draft   ~/.claude/skills/
 cp -r ~/tz-skills/skills/tz-review  ~/.claude/skills/
 cp -r ~/tz-skills/skills/tz-verify  ~/.claude/skills/
+cp -r ~/tz-skills/skills/worktree-start  ~/.claude/skills/
+cp -r ~/tz-skills/skills/worktree-finish ~/.claude/skills/
 ```
 
-Після цього у Claude Code стануть доступні команди `/tz-draft`, `/tz-review` і `/tz-verify`.
+Після цього у Claude Code стануть доступні команди `/tz-draft`, `/tz-review`, `/tz-verify`, `/worktree-start`, `/worktree-finish`.
 
 > `/tz-draft` не потребує ні `providers.json`, ні ключів — це інтерв'ю з тобою силами
 > самого Claude. Кроки 3–5 нижче потрібні лише для `/tz-review` та `/tz-verify`.
@@ -169,10 +171,10 @@ bash ~/tz-skills/lib/llm-critic.sh --smoke-all   # кожен слот має в
 ## Крок 6. Користуйся у Claude Code
 
 Якщо ТЗ ще немає — почни з інтерв'ю (Claude питатиме по одному бізнес-питанню,
-максимум ~7, і сам напише драфт ТЗ; технічні рішення прийме сам):
+максимум ~7, одразу пропонуючи свою відповідь; в кінці видасть підсилену версію ТВОГО ТЗ. Вихід у будь-який момент — кодове слово «ФІНІШ»):
 
 ```
-/tz-draft опиши свою ідею кількома реченнями
+/tz-draft шлях/до/чернетки_ТЗ.md   (або опиши ідею кількома реченнями)
 ```
 
 Перед тим, як давати Claude велике завдання — прожени ТЗ:

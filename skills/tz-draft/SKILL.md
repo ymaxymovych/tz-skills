@@ -1,6 +1,6 @@
 ---
 name: tz-draft
-description: Take the user's rough TZ draft (or raw idea), open by stating the Job-to-be-Done as you read it, then interrogate the BUSINESS logic gaps — one question at a time, each question ALREADY ANSWERED by you with the recommended option and why it's right, so the user only confirms or corrects. Every message ends with the code word «ФІНІШ» — typing it accepts all your remaining recommended answers and produces the final TZ, ready for /tz-review. Technical choices (OS, server, DB, framework) are NEVER asked — the agent decides them and records them as vetoable defaults. Invoke when the user brings a draft TZ, a raw idea, or says "прожени ТЗ" / "напиши ТЗ".
+description: Take the user's rough TZ draft (or raw idea), open by stating the Job-to-be-Done as you read it, then interrogate the BUSINESS logic gaps — one question at a time, each question ALREADY ANSWERED by you with the recommended option and why it's right, so the user only confirms or corrects. Every message ends with the code word «ФІНІШ» — typing it accepts all your remaining recommended answers and immediately produces the STRENGTHENED version of the user's own TZ (their text preserved, gaps filled, changes listed), ready for /tz-review. Technical choices (OS, server, DB, framework) are NEVER asked — the agent decides them and records them as vetoable defaults. Invoke when the user brings a draft TZ, a raw idea, or says "прожени ТЗ" / "напиши ТЗ".
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -9,17 +9,21 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 Upstream companion to `/tz-review` and `/tz-verify`. The pipeline is:
 
 ```
-чернетка ТЗ (або ідея) → /tz-draft (JTBD → питання-з-відповідями → повне ТЗ)
+чернетка ТЗ (або ідея) → /tz-draft (JTBD → питання-з-відповідями → ПІДСИЛЕНЕ твоє ТЗ)
                        → /tz-review (3 критики аудитують ТЗ)
                        → реалізація
                        → /tz-verify (3 критики перевіряють виконання)
 ```
 
-Methodology adapted from the Superpowers `brainstorming` skill (obra/superpowers, MIT) —
-one question at a time, multiple-choice, YAGNI, validate-before-writing — with two
-narrowings: **business logic only**, and **answer-first**: the agent never asks a bare
-question; it asks AND proposes the single best answer with reasoning, so the user's
-minimum viable participation is the word «так».
+**Attribution.** The core concept of this skill — strengthen an EXISTING draft rather than
+write from scratch; answer-first questioning (agent proposes the best answer with each
+question); the «ФІНІШ» code-word exit — is by this pack's author. Only the low-level
+question mechanics (one question at a time, multiple-choice preferred, YAGNI,
+validate-before-writing) are adapted from the Superpowers `brainstorming` skill
+(obra/superpowers, MIT). The narrowing to **business logic only** and the **answer-first**
+protocol — the agent never asks a bare question; it asks AND proposes the single best
+answer with reasoning, so the user's minimum viable participation is «так» — are this
+pack's design, not Superpowers'.
 
 ## The two hard rules
 
@@ -117,6 +121,8 @@ every question, every clarification):
 Semantics of «ФІНІШ»:
 - Stop asking immediately. Zero further questions.
 - All remaining gap-list questions are auto-resolved with YOUR recommended answers.
+- Immediately produce the **strengthened version of the user's own TZ** (Step 4 — this is
+  an edit of their document, not a new document).
 - In the TZ, human-confirmed rules are written plainly; auto-accepted ones are marked
   **«✅ авто-прийнято (ФІНІШ)»** — so the user can later scan exactly what they delegated.
 - Anything you genuinely could not answer even yourself → **«⚠️ ПРИПУЩЕННЯ»** in
@@ -126,46 +132,63 @@ Also treat as ФІНІШ: "досить", "далі сам", "just draft it", "�
 clear stop signal. The explicit footer exists so the user never has to wonder HOW to
 stop you; but you must recognize informal stops too.
 
-### Step 3 — Summary gate, then the document
+### Step 3 — Summary gate, then the edits
 
 After the interview (completed or ФІНІШed), post a **5-10 line summary**: goal, user,
 core flow, non-goals, the 2-3 riskiest confirmed business rules. One question only:
-**«Так — пишу повне ТЗ?»** (with the ФІНІШ footer; ФІНІШ here means "yes, write it").
-A wrong summary costs one message; a wrong 300-line TZ costs an evening.
+**«Так — вношу правки у твоє ТЗ?»** (with the ФІНІШ footer; ФІНІШ here means "yes, do it").
+A wrong summary costs one message; a wrong 300-line rewrite costs an evening.
 
-### Step 4 — Write `{TZ_DIR}/TZ_{slug}.md`
+### Step 4 — Strengthen the user's draft (EDIT, don't rewrite)
 
-```markdown
-# TZ: {назва} (v2 — після /tz-draft, {date}; v1 = чернетка користувача)
+**The output is the user's own document, improved — not a new document written by you.**
+The user already invested thought into their draft; your job is to fill the gaps the
+interview surfaced, not to replace their text with yours.
 
-## 1. Мета і JTBD
-{підтверджене у Step 1 формулювання + метрика успіху}
+Rules:
+- If the draft is a file in the repo → edit THAT file (bump version in its title:
+  «v2 — підсилено /tz-draft, {date}»). If it was pasted text → write it to
+  `{TZ_DIR}/TZ_{slug}.md` preserving their structure and wording.
+- **Preserve the user's structure, headings, and phrasing wherever they are sound.**
+  Insert, don't overwrite. Rewrite a passage only when the interview contradicted it —
+  and then note it in the changelog.
+- At the top, insert a short changelog block:
 
-## 2. Користувачі та ролі
-## 3. Основний сценарій        {крок за кроком очима користувача}
-## 4. Бізнес-правила           {нумеровані; кожне позначене: підтверджено / ✅ авто-прийнято (ФІНІШ)}
-## 5. Крайні випадки (бізнес)
-## 6. Поза scope v1            {явні відмови + YAGNI-зрізання}
-## 7. Порядок реалізації       {2-4 фази, кожна закінчується чимось ПРАЦЮЮЧИМ,
-                                фаза 1 = найтонший наскрізний зріз (walking skeleton)}
-## 8. Acceptance Criteria      {AC-1..N; один критерій = одне перевірне твердження без "and";
-                                формат, який /tz-verify зможе розібрати}
-## 9. Технічні рішення за замовчуванням  {все, про що ти НЕ питав: рішення + 1 речення чому}
-## 10. Відкриті ризики         {pre-mortem результат + ⚠️ ПРИПУЩЕННЯ}
-```
+  ```markdown
+  > **Що підсилено відносно чернетки ({date}):**
+  > - додано: {розділ/правило} — з відповіді на питання N
+  > - додано: {…} — ✅ авто-прийнято (ФІНІШ)
+  > - змінено: {було → стало} — бо {відповідь користувача}
+  ```
 
-Section 8 is the contract with `/tz-verify`. Section 9 is where your technical autonomy
-becomes visible and vetoable instead of silent. Section 7 keeps implementation honest —
-phases end in something demonstrable, not "60% of everything".
+- **Coverage checklist** — after your edits the document must answer all of these; add a
+  missing section only if the draft truly lacks it (match the draft's heading style):
+  1. Мета і JTBD (+ метрика успіху) — з підтвердженого Step 1
+  2. Користувачі та ролі
+  3. Основний сценарій (очима користувача)
+  4. Бізнес-правила — нумеровані; кожне: підтверджено / ✅ авто-прийнято (ФІНІШ)
+  5. Крайні випадки (бізнес)
+  6. Поза scope v1 (явні відмови + YAGNI-зрізання)
+  7. Порядок реалізації — 2-4 фази, кожна закінчується чимось ПРАЦЮЮЧИМ; фаза 1 =
+     найтонший наскрізний зріз (walking skeleton)
+  8. Acceptance Criteria — AC-1..N; один критерій = одне перевірне твердження без "and";
+     формат, який `/tz-verify` зможе розібрати
+  9. Технічні рішення за замовчуванням — все, про що ти НЕ питав: рішення + 1 речення чому
+  10. Відкриті ризики — pre-mortem результат + ⚠️ ПРИПУЩЕННЯ
+
+Item 8 is the contract with `/tz-verify`. Item 9 is where your technical autonomy becomes
+visible and vetoable instead of silent. Item 7 keeps implementation honest — phases end in
+something demonstrable, not "60% of everything".
 
 ### Step 5 — Hand off
 
 Close with exactly this shape:
 
 ```
-✅ ТЗ готове: {path}
-{якщо були авто-прийняті: N правил прийнято автоматично — розділ 4, позначені ✅}
-{якщо були припущення: ⚠️ перевір розділ 10}
+✅ ТЗ підсилено: {path}
+Що змінилось — у changelog-блоці вгорі документа.
+{якщо були авто-прийняті: N правил прийнято автоматично — позначені ✅}
+{якщо були припущення: ⚠️ перевір розділ «Відкриті ризики»}
 
 Наступний крок — технічний аудит трьома незалежними моделями:
 /tz-review {path}
@@ -182,7 +205,9 @@ Do NOT auto-run `/tz-review` — it is expensive; the user triggers it.
 - Arguing with the user's answer more than once.
 - A message without the «ФІНІШ» footer — the user must always see the exit.
 - Ignoring an informal stop signal because it wasn't the literal code word.
-- Writing the full TZ before the Step 3 summary is approved.
+- Editing the user's TZ before the Step 3 summary is approved.
+- Rewriting the user's sound text with your own phrasing — insert and augment; their
+  draft is the backbone, you are the reinforcement.
 - Inventing business rules that trace to no answer — everything in section 4 is either
   confirmed, ✅ авто-прийнято, or it doesn't exist.
 - Dragging past the budget. `/tz-review` exists to catch what the interview missed.
