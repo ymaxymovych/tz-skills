@@ -68,12 +68,18 @@ check_remote() {
     warn "   пізніше."
     return 2
   fi
-  local local_sha remote_sha base
-  local_sha="$(git -C "$REPO" rev-parse HEAD)"
-  remote_sha="$(git -C "$REPO" rev-parse FETCH_HEAD)"
-  [ "$local_sha" = "$remote_sha" ] && { printf 'fresh'; return 0; }
-  base="$(git -C "$REPO" merge-base HEAD FETCH_HEAD 2>/dev/null || echo '')"
-  if [ "$base" = "$local_sha" ]; then printf 'behind'; else printf 'diverged'; fi
+  # Рахуємо ОБИДВА напрямки. Інакше «клон попереду» (студент зробив власні
+  # коміти) не відрізнити від «клон розійшовся» — а це різні стани: у першому
+  # з GitHub нічого не бракує, у другому оновлення впаде.
+  local counts ahead behind
+  counts="$(git -C "$REPO" rev-list --left-right --count HEAD...FETCH_HEAD 2>/dev/null || echo '')"
+  [ -n "$counts" ] || { warn "❌ Не можу порівняти клон із GitHub (git rev-list не відпрацював)."; return 2; }
+  ahead="$(printf '%s' "$counts"  | awk '{print $1}')"
+  behind="$(printf '%s' "$counts" | awk '{print $2}')"
+  if   [ "$behind" -eq 0 ] && [ "$ahead" -eq 0 ]; then printf 'fresh'
+  elif [ "$behind" -gt 0 ] && [ "$ahead" -eq 0 ]; then printf 'behind %s' "$behind"
+  elif [ "$behind" -eq 0 ] && [ "$ahead" -gt 0 ]; then printf 'ahead %s'  "$ahead"
+  else printf 'diverged %s %s' "$ahead" "$behind"; fi
 }
 
 # --- (2) інсталяція ↔ клон ---------------------------------------------------
@@ -119,10 +125,15 @@ case "${1:-}" in
     say "Перевіряю дві речі: чи свіжий клон і чи свіжа інсталяція."
     say ""
     remote_state="$(check_remote)" || { exit 2; }
-    case "$remote_state" in
-      fresh)    say "1/2 ✅ Клон збігається з GitHub." ;;
-      behind)   say "1/2 ⚠️  Клон ВІДСТАВ від GitHub — на GitHub є новіша версія."; rc=3 ;;
-      diverged) say "1/2 ⚠️  Клон розійшовся з GitHub (є локальні коміти)."; rc=3 ;;
+    # shellcheck disable=SC2086
+    set -- $remote_state
+    case "$1" in
+      fresh)  say "1/2 ✅ Клон збігається з GitHub." ;;
+      behind) say "1/2 ⚠️  Клон ВІДСТАВ від GitHub на $2 коміт(и) — є новіша версія."; rc=3 ;;
+      ahead)  say "1/2 ℹ️  Клон ПОПЕРЕДУ GitHub на $2 коміт(и) — власні локальні зміни."
+              say "        З GitHub нічого не бракує; це не застарілість." ;;
+      diverged) say "1/2 ⚠️  Клон РОЗІЙШОВСЯ з GitHub: $2 своїх коміт(и), $3 чужих."
+                say "        Оновлення в такому стані не пройде — розберись із клоном."; rc=3 ;;
     esac
     stale="$(stale_installs)"
     if [ -z "$stale" ]; then
