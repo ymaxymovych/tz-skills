@@ -1,26 +1,31 @@
 # TZ Skills — крос-перевірка технічних завдань для Claude Code
 
-> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from rough spec to verified implementation: `/tz-draft` strengthens YOUR draft spec via answer-first business questions (type «ФІНІШ» to accept its answers and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors**; `/worktree-start` isolates the work; `/tz-verify` checks it was truly implemented; `/worktree-finish` lands the branch. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
+> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — each with a recommended answer (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors**; `/tz-verify` checks it was truly implemented. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
 
 Конвеєр скілів для Claude Code, який прибирає головну проблему AI-розробки:
 **Claude каже «зробив», а насправді відхилився від задачі або пропустив половину.**
 
 ```
-чернетка ТЗ → /tz-draft → /tz-review → /worktree-start → реалізація → /tz-verify → /worktree-finish
-              (підсилення) (аудит ТЗ)   (ізоляція)                     (перевірка)   (здача + прибирання)
+надиктовка / чернетка ТЗ → /tz-draft → /tz-review → реалізація → /tz-verify
+                          (структурує)  (аудит ТЗ)  (в ізольованому  (перевірка
+                                                     worktree — це    виконання)
+                                                     вшито у ТЗ)
 ```
 
-- **`/tz-draft`** — приносиш **свою чернетку ТЗ** (або сиру ідею), скіл спершу каже, як він
-  зрозумів **Job-to-be-Done** задачі, а далі закриває прогалини бізнес-логіки питаннями
-  **у форматі «питання + моя рекомендована відповідь + чому вона правильна»** — тобі
-  досить казати «так». По одному питанню за раз (бюджет ~7), **тільки про бізнес**;
-  технічне (ОС, сервер, база, фреймворк) агент вирішує сам і записує у ТЗ секцією
-  «рішення за замовчуванням», яку можна ветувати. У кінці кожного повідомлення — кодове
-  слово **«ФІНІШ»**: пишеш його — скіл приймає власні відповіді на все, що лишилось, і
-  одразу видає **підсилену версію ТВОГО ТЗ** (твій текст зберігається, прогалини
-  заповнюються, зміни перелічені у changelog вгорі документа) + команду для `/tz-review`.
-  Концепція — авторська; механіка питань адаптована з
-  [Superpowers brainstorming](https://github.com/obra/superpowers) (MIT).
+- **`/tz-draft`** — **виговорюєшся 10-15 хвилин у вільному потоці** (або приносиш чернетку
+  ТЗ) — скіл слухає не перебиваючи, впорядковує сказане, каже, як він зрозумів
+  **Job-to-be-Done**, і питає **лише те, на що сам не може відповісти з високою
+  впевненістю** (типово 0-3 питання, максимум 7). Кожне питання приходить **уже з
+  рекомендованою відповіддю і поясненням, чому вона найправильніша** — тобі досить
+  казати «так»; варіанти поруч існують лише щоб незгода коштувала одну літеру. **Тільки
+  бізнес-питання**; технічне (ОС, сервер, база, фреймворк) агент вирішує сам і записує у
+  ТЗ секцією «рішення за замовчуванням». У кінці кожного повідомлення — кодове слово
+  **«ФІНІШ»**: пишеш його — скіл приймає власні рекомендації на все, що лишилось, і
+  одразу видає **підсилену версію ТВОГО ТЗ** (твої формулювання зберігаються, зміни
+  перелічені у changelog вгорі) + команду для `/tz-review`. Кожне згенероване ТЗ містить
+  вшиту інструкцію виконавцю: працювати в ізольованому git worktree і здавати через PR —
+  студенту в git розбиратися не треба. Концепція — авторська; механіка питань адаптована
+  з [Superpowers brainstorming](https://github.com/obra/superpowers) (MIT).
 
 - **`/tz-review`** — перевіряє **технічне завдання (ТЗ) ПЕРЕД** тим, як віддати його в роботу.
   Три незалежні LLM читають ТЗ за фіксованим чек-листом з 11 категорій (безпека, дані,
@@ -33,16 +38,11 @@
   (`BLOCK` / `FIX-FIRST` / `SAFE-TO-COMMIT` / `SAFE-TO-DEPLOY-AFTER-CHECK` / `INSUFFICIENT-EVIDENCE`)
   і чесний список: що зроблено, а що ні.
 
-- **`/worktree-start`** — перед реалізацією ізолює роботу у власному git worktree, щоб
-  паралельні Claude-сесії не затирали незакомічену роботу одна одної. Перевіряє, чи ти вже
-  не в worktree, ставить гілку `feat/{назва-ТЗ}`, ганяє baseline-перевірку до першої правки.
-
-- **`/worktree-finish`** — здача: спершу зелений гейт (тести/типи/лінт + вердикт
-  `/tz-verify`), потім меню «merge локально / push + PR / лишити», потім прибирання
-  worktree і гілки. Викинути незамерджену роботу можна ЛИШЕ написавши буквально слово
-  «discard». Обидва worktree-скіли адаптовані зі
-  [Superpowers](https://github.com/obra/superpowers) (`using-git-worktrees`,
-  `finishing-a-development-branch`, MIT).
+> **Про git-ізоляцію:** окремих worktree-скілів немає свідомо — студент не має розбиратися
+> в git. Замість цього кожне ТЗ, згенероване `/tz-draft`, містить обов'язкову інструкцію
+> агенту-виконавцю: створити ізольований worktree до першої правки, здати через PR після
+> зелених перевірок, прибрати worktree після мерджу, а знищити незамерджену роботу — лише
+> за явним словом «discard». Агент читає ТЗ і робить це сам.
 
 ## Чому це працює
 
@@ -79,7 +79,7 @@ chmod +x lib/llm-critic.sh skills/tz-verify/fanout-dispatch.sh
 
 # 2. Поставити скіли у Claude Code
 mkdir -p ~/.claude/skills
-cp -r skills/tz-draft skills/tz-review skills/tz-verify skills/worktree-start skills/worktree-finish ~/.claude/skills/
+cp -r skills/tz-draft skills/tz-review skills/tz-verify ~/.claude/skills/
 
 # 3. Налаштувати провайдерів
 cp providers.example.json ~/.claude/tz-providers.json
@@ -89,7 +89,7 @@ cp providers.example.json ~/.claude/tz-providers.json
 bash lib/llm-critic.sh --smoke-all      # усі три слоти → OK
 
 # 5. Користуватись у Claude Code:
-#    /tz-draft  опиши ідею       (ще немає ТЗ — інтерв'ю і драфт)
+#    /tz-draft                   (виговорись 10-15 хв АБО дай чернетку — отримаєш повне ТЗ)
 #    /tz-review шлях/до/ТЗ.md    (перед роботою)
 #    /tz-verify шлях/до/ТЗ.md    (після роботи)
 ```

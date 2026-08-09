@@ -1,168 +1,176 @@
 ---
 name: tz-draft
-description: Take the user's rough TZ draft (or raw idea), open by stating the Job-to-be-Done as you read it, then interrogate the BUSINESS logic gaps — one question at a time, each question ALREADY ANSWERED by you with the recommended option and why it's right, so the user only confirms or corrects. Every message ends with the code word «ФІНІШ» — typing it accepts all your remaining recommended answers and immediately produces the STRENGTHENED version of the user's own TZ (their text preserved, gaps filled, changes listed), ready for /tz-review. Technical choices (OS, server, DB, framework) are NEVER asked — the agent decides them and records them as vetoable defaults. Invoke when the user brings a draft TZ, a raw idea, or says "прожени ТЗ" / "напиши ТЗ".
+description: Turn the user's free-flow spoken monologue (10-15 min of dictated thoughts) or rough TZ draft into a complete, structured TZ — WITHOUT interrogating them. The skill structures what was said first, states the Job-to-be-Done back, and asks ONLY the questions it genuinely cannot answer itself with high confidence (typically 0-3, hard cap 7) — each question arriving WITH the recommended answer and why it's right, so the user only confirms. «ФІНІШ» at any moment accepts all recommended answers and produces the strengthened TZ immediately. Technical choices are never asked; the TZ always embeds the instruction for the implementing agent to work in an isolated git worktree. Invoke when the user dictates an idea, brings a draft TZ, or says "допоможи зробити ТЗ" / "прожени ТЗ".
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# TZ Draft — answer-first business elicitation over a rough spec
+# TZ Draft — structure the flow, ask only the leftovers
 
 Upstream companion to `/tz-review` and `/tz-verify`. The pipeline is:
 
 ```
-чернетка ТЗ (або ідея) → /tz-draft (JTBD → питання-з-відповідями → ПІДСИЛЕНЕ твоє ТЗ)
-                       → /tz-review (3 критики аудитують ТЗ)
-                       → реалізація
-                       → /tz-verify (3 критики перевіряють виконання)
+надиктовка / чернетка → /tz-draft (структурує → JTBD → 0-3 залишкові питання → ПІДСИЛЕНЕ ТЗ)
+                      → /tz-review (3 критики аудитують ТЗ)
+                      → реалізація (в ізольованому worktree — інструкція вшита у ТЗ)
+                      → /tz-verify (3 критики перевіряють виконання)
 ```
 
-**Attribution.** The core concept of this skill — strengthen an EXISTING draft rather than
-write from scratch; answer-first questioning (agent proposes the best answer with each
-question); the «ФІНІШ» code-word exit — is by this pack's author. Only the low-level
-question mechanics (one question at a time, multiple-choice preferred, YAGNI,
-validate-before-writing) are adapted from the Superpowers `brainstorming` skill
-(obra/superpowers, MIT). The narrowing to **business logic only** and the **answer-first**
-protocol — the agent never asks a bare question; it asks AND proposes the single best
-answer with reasoning, so the user's minimum viable participation is «так» — are this
-pack's design, not Superpowers'.
+**Attribution.** The core concept — flow-dictation first, structure second, questions last
+and only for genuine unknowns; answer-first questioning; the «ФІНІШ» code-word exit;
+strengthening an EXISTING draft rather than writing from scratch — is by this pack's
+author. Only low-level question mechanics (one question at a time, options offered,
+YAGNI, validate-before-writing) are adapted from the Superpowers `brainstorming` skill
+(obra/superpowers, MIT).
 
-## The two hard rules
+## The philosophy: dictation beats interrogation
 
-**Rule 1 — business only.** You may ask the user ONLY about business logic. Never about technology.
+The user's best input is a **10-15 minute free-flow monologue** — spoken or typed without
+structure. A person in flow gives deeper, broader context than a person answering
+questions that arrive in jerks. Therefore this skill NEVER leads with questions. It leads
+with LISTENING and STRUCTURING, and asks only what remains genuinely unknowable after that.
 
-| ✅ ASK about (business) | ❌ NEVER ASK (technical — decide yourself) |
+**The confidence gate (the central rule of questioning).** A question may be asked ONLY if
+BOTH conditions hold:
+1. Guessing wrong would be **expensive for the business** (money, access rights, mass
+   communication, lost clients — not cosmetics), AND
+2. You genuinely **cannot infer the answer with high confidence** from the dictation, the
+   draft, or the codebase.
+
+Everything that fails this gate you decide YOURSELF and record in the TZ (business-shaped
+guesses → «⚠️ ПРИПУЩЕННЯ»; technical choices → «Технічні рішення за замовчуванням»).
+**Typical interview: 0-3 questions. Hard cap: 7.** Zero questions is a perfectly good
+outcome — it means the dictation was complete.
+
+## The three hard rules
+
+**Rule 1 — business only.** Questions may be ONLY about business logic. Never technology.
+
+| ✅ можна питати (бізнес) | ❌ ніколи не питати (технічне — вирішуй сам) |
 |---|---|
-| Who uses this? What job does it do for them? | OS, hosting, server, cloud |
-| What does "success" look like, in numbers? | Database, schema, ORM |
-| What happens when X pays / cancels / fails? | Language, framework, library |
-| Who may see/do what? (roles, business terms) | Architecture, API shape |
-| What is explicitly OUT of scope for v1? | Auth mechanism, tokens |
-| What existing flows must this not break? | Deployment, CI, testing strategy |
-| Business edge cases ("клієнт має два контракти?") | Rate limits, caching, queues |
-| Priorities: which half ships first if we cut? | Any "which tool" question |
+| Хто користувач і яку роботу це для нього робить? | ОС, хостинг, сервер, хмара |
+| Що таке «успіх», бажано в цифрах? | База даних, схема, ORM |
+| Що відбувається, коли X платить / скасовує / падає? | Мова, фреймворк, бібліотека |
+| Кому що дозволено (ролі, бізнес-термінами)? | Архітектура, форма API |
+| Що явно ПОЗА scope v1? | Механізм auth, токени |
+| Які наявні потоки не можна зламати? | Деплой, CI, стратегія тестування |
+| Бізнес-крайні випадки («клієнт має два контракти?») | Ліміти, кеш, черги |
+| Пріоритети: яку половину ріжемо, якщо треба? | Будь-яке «який інструмент» |
 
-Every technical decision you would have asked — make it yourself (boring/standard option
-for this codebase) and record it in the TZ under **«Технічні рішення за замовчуванням»**
-with one line of reasoning. Vetoable by reading, never asked live.
+**Rule 2 — answer-first, ALWAYS.** Every question — no exceptions — arrives WITH:
+(а) варіанти відповідей, (б) **твоя рекомендація: одна позначена відповідь**, і
+(в) **пояснення, ЧОМУ вона найправильніша в цій ситуації** (1-3 речення, з опорою на
+надиктоване / чернетку / кодову базу). Варіанти існують лише щоб незгода коштувала одну
+літеру, а не есе — вони НЕ перекладають вибір на людину. Людина, яка не розуміє
+варіантів, просто каже «так» на рекомендацію. Голе питання без рекомендації з
+поясненням — порушення протоколу.
 
-**Rule 2 — answer-first.** Every question you ask must arrive WITH your recommended answer
-and the reason it is the most correct one. A bare question mark is a protocol violation.
-The user's job is to confirm, correct, or type the code word — not to think from zero.
+**Rule 3 — the confidence gate** (описаний вище): не питай того, на що можеш відповісти
+сам з високою впевненістю. Питання, яке не пройшло гейт — вирішуй сам і записуй у ТЗ.
 
-## Interview protocol
+## Protocol
 
-### Step 0 — Ingest what was brought
+### Step 0 — Listen and structure (silently)
 
-The normal input is a **draft TZ the user already wrote somewhere** (file path or pasted
-text). Also accepted: a raw idea in a few sentences.
+Input, in order of preference:
+1. **Надиктований монолог** — user talks/types freely for 10-15 min. This is the primary
+   mode: «Я тобі зараз виговорюсь, а ти впорядкуй мої думки і перетвори їх на ТЗ».
+2. **Чернетка ТЗ** — file path or pasted text.
+3. **Сира ідея** — a few sentences.
 
-1. Read the draft carefully. Read the codebase around the feature area (grep models,
-   routes, existing flows) — a question the draft or the code already answers is spam.
-2. Locate `{TZ_DIR}` per the `/tz-review` convention (`.ai-context/` → else `docs/specs/`
-   or `docs/tz/` → else create `docs/tz/`).
-3. Build the gap list: which business questions the draft leaves unanswered, ordered by
-   the cost of guessing wrong (money flows and permissions first, cosmetics never).
-   Budget: **~7 questions, hard cap 10.**
+Do NOT interrupt a monologue with questions. When it's done:
+- Read the codebase around the feature area (grep models, routes, existing flows) —
+  a question the code already answers is spam.
+- Locate `{TZ_DIR}` per the `/tz-review` convention (`.ai-context/` → else `docs/specs/`
+  or `docs/tz/` → else create `docs/tz/`).
+- Structure everything said into the coverage checklist (Step 4) IN YOUR HEAD, and build
+  the gap list. Run every gap through the confidence gate — most gaps die there and
+  become your own recorded decisions. What survives (typically 0-3 items) is the
+  interview, ordered by cost-of-guessing-wrong.
 
-### Step 1 — Open with the Job-to-be-Done (always first, before any question)
-
-Your first message states, in 3-5 lines, the JTBD as you read it from the draft:
+### Step 1 — State the Job-to-be-Done (always, before any question)
 
 ```
 📋 Як я зрозумів задачу (JTBD):
-Коли [ситуація], [хто] хоче [що зробити], щоб [бізнес-результат/прогрес].
+Коли [ситуація], [хто] хоче [що зробити], щоб [бізнес-результат].
 Успіх виглядає так: [метрика/спостережуваний наслідок].
 
 Це правильне прочитання? («так» / поправ мене / «ФІНІШ»)
 ```
 
-This is question #0 and the cheapest place to catch a wrong direction. If the user
-corrects it — the correction reorders your gap list before you continue.
+The cheapest place to catch a wrong direction. A correction here reorders the gap list.
 
-### Step 2 — Questions, answer-first, one at a time
+### Step 2 — The leftover questions (0-3 typical, 7 max), answer-first
 
-**One question per message. Never a list.** Each message has this exact shape:
+One question per message, this exact shape:
 
 ```
-Питання {N}/{budget}: {питання}
+Питання {N}/{кількість}: {питання}
 
-Чому питаю: {1-2 речення — що зламається в бізнесі, якщо вгадати неправильно}
+Чому питаю: {що зламається в бізнесі, якщо вгадати неправильно, і чому я не можу
+вивести відповідь сам}
 
 Варіанти:
   a) {варіант}
   b) {варіант}
   c) {варіант}
 
-✅ Моя відповідь: {літера}) — {чому саме вона найправильніша: 1-3 речення,
-   з опорою на драфт/кодову базу/здоровий глузд}
+✅ Рекомендую: {літера}) — {чому саме вона найправильніша: 1-3 речення}
 
-— «так» = приймаємо мою відповідь, іду далі
-— або дай свою відповідь / поправку
-— «ФІНІШ» = приймаєш мої відповіді на ВСІ питання, що лишились, і я одразу пишу ТЗ
+— «так» = приймаємо, йду далі
+— або своя відповідь / поправка
+— «ФІНІШ» = приймаєш мої рекомендації на все, що лишилось, і я одразу видаю ТЗ
 ```
 
-Mechanics:
-- User says «так» (or anything affirmative) → lock the answer, next question.
-- User gives a different answer → lock THEIR answer, next question. Never argue twice:
-  you may push back ONCE if their answer creates a concrete business risk, then accept.
-- If an answer reveals the request is really two projects → say so, propose which is v1,
-  scope to it (YAGNI).
-- The **last question of every interview is a pre-mortem** (counts inside the budget):
-  *"Уяви: місяць після запуску, фіча провалилась. Найімовірніша причина?"* — with your
-  proposed answer. Whatever the user confirms lands in «Відкриті ризики».
+- «так» → lock, next. Інша відповідь → lock THEIRS, next (може заперечити РАЗ, якщо
+  відповідь створює конкретний бізнес-ризик, потім прийняти).
+- Якщо відповіді розкрили, що це два проєкти → сказати, запропонувати який з них v1 (YAGNI).
+- Якщо після гейта питань ≥3 — останнім (у межах бюджету) йде **pre-mortem**: «Уяви:
+  місяць після запуску, фіча провалилась. Найімовірніша причина?» — теж зі своєю
+  рекомендованою відповіддю. Результат → «Відкриті ризики».
+- Якщо після гейта питань НУЛЬ — так і сказати: «Питань не маю, надиктоване повне» — і
+  одразу до Step 3.
 
 ### The code word — «ФІНІШ»
 
-The interrupt contract, printed at the end of EVERY message of this skill (JTBD opening,
-every question, every clarification):
+Printed at the end of EVERY message of this skill:
 
-> Напишіть **«ФІНІШ»** — я прийму власні запропоновані відповіді на всі питання, що
-> лишились, одразу напишу повне ТЗ і дам команду для наступного кроку (`/tz-review`).
+> Напишіть **«ФІНІШ»** — я прийму власні рекомендації на все, що лишилось, одразу видам
+> підсилене ТЗ і команду для наступного кроку (`/tz-review`).
 
-Semantics of «ФІНІШ»:
-- Stop asking immediately. Zero further questions.
-- All remaining gap-list questions are auto-resolved with YOUR recommended answers.
-- Immediately produce the **strengthened version of the user's own TZ** (Step 4 — this is
-  an edit of their document, not a new document).
-- In the TZ, human-confirmed rules are written plainly; auto-accepted ones are marked
-  **«✅ авто-прийнято (ФІНІШ)»** — so the user can later scan exactly what they delegated.
-- Anything you genuinely could not answer even yourself → **«⚠️ ПРИПУЩЕННЯ»** in
-  «Відкриті ризики».
+Semantics: stop asking instantly; auto-resolve remaining gaps with YOUR recommendations;
+produce the TZ (Step 4) immediately. Auto-accepted rules are marked
+**«✅ авто-прийнято (ФІНІШ)»** in the document; what even you couldn't answer →
+**«⚠️ ПРИПУЩЕННЯ»** in «Відкриті ризики». Informal stops («досить», «далі сам»,
+«переходь до рев'ю») count as ФІНІШ too — the footer exists so the user never has to
+wonder HOW to stop you, not to make the literal word mandatory.
 
-Also treat as ФІНІШ: "досить", "далі сам", "just draft it", "переходь до рев'ю" — any
-clear stop signal. The explicit footer exists so the user never has to wonder HOW to
-stop you; but you must recognize informal stops too.
+### Step 3 — Summary gate
 
-### Step 3 — Summary gate, then the edits
+Post a **5-10 line summary**: goal, user, core flow, non-goals, the 2-3 riskiest business
+rules as confirmed. One question: **«Так — оформлюю ТЗ?»** (ФІНІШ = «так, оформлюй»).
+A wrong summary costs one message; a wrong 300-line document costs an evening.
 
-After the interview (completed or ФІНІШed), post a **5-10 line summary**: goal, user,
-core flow, non-goals, the 2-3 riskiest confirmed business rules. One question only:
-**«Так — вношу правки у твоє ТЗ?»** (with the ФІНІШ footer; ФІНІШ here means "yes, do it").
-A wrong summary costs one message; a wrong 300-line rewrite costs an evening.
+### Step 4 — Produce the strengthened TZ (EDIT, don't replace)
 
-### Step 4 — Strengthen the user's draft (EDIT, don't rewrite)
+**The output is the user's material, structured and reinforced — never your document
+instead of theirs.**
 
-**The output is the user's own document, improved — not a new document written by you.**
-The user already invested thought into their draft; your job is to fill the gaps the
-interview surfaced, not to replace their text with yours.
-
-Rules:
-- If the draft is a file in the repo → edit THAT file (bump version in its title:
-  «v2 — підсилено /tz-draft, {date}»). If it was pasted text → write it to
-  `{TZ_DIR}/TZ_{slug}.md` preserving their structure and wording.
-- **Preserve the user's structure, headings, and phrasing wherever they are sound.**
-  Insert, don't overwrite. Rewrite a passage only when the interview contradicted it —
-  and then note it in the changelog.
-- At the top, insert a short changelog block:
+- Чернетка-файл → edit THAT file (bump version у заголовку: «v2 — підсилено /tz-draft,
+  {date}»). Надиктовка/вставлений текст → write `{TZ_DIR}/TZ_{slug}.md`, зберігаючи
+  формулювання і акценти користувача скрізь, де вони здорові.
+- **Insert, don't overwrite.** Переписати пасаж можна лише якщо інтерв'ю його спростувало
+  — і тоді це йде в changelog.
+- At the top, a changelog block:
 
   ```markdown
-  > **Що підсилено відносно чернетки ({date}):**
-  > - додано: {розділ/правило} — з відповіді на питання N
+  > **Що підсилено відносно надиктованого/чернетки ({date}):**
+  > - додано: {правило} — з відповіді на питання N
   > - додано: {…} — ✅ авто-прийнято (ФІНІШ)
   > - змінено: {було → стало} — бо {відповідь користувача}
   ```
 
-- **Coverage checklist** — after your edits the document must answer all of these; add a
-  missing section only if the draft truly lacks it (match the draft's heading style):
+- **Coverage checklist** — після твоїх правок документ мусить відповідати на все нижче
+  (додавай розділ, лише якщо його справді бракує; стиль заголовків — як у користувача):
   1. Мета і JTBD (+ метрика успіху) — з підтвердженого Step 1
   2. Користувачі та ролі
   3. Основний сценарій (очима користувача)
@@ -170,27 +178,30 @@ Rules:
   5. Крайні випадки (бізнес)
   6. Поза scope v1 (явні відмови + YAGNI-зрізання)
   7. Порядок реалізації — 2-4 фази, кожна закінчується чимось ПРАЦЮЮЧИМ; фаза 1 =
-     найтонший наскрізний зріз (walking skeleton)
-  8. Acceptance Criteria — AC-1..N; один критерій = одне перевірне твердження без "and";
+     найтонший наскрізний зріз
+  8. Acceptance Criteria — AC-1..N; один критерій = одне перевірне твердження без «and»;
      формат, який `/tz-verify` зможе розібрати
-  9. Технічні рішення за замовчуванням — все, про що ти НЕ питав: рішення + 1 речення чому
-  10. Відкриті ризики — pre-mortem результат + ⚠️ ПРИПУЩЕННЯ
+  9. Технічні рішення за замовчуванням — усе, про що ти НЕ питав: рішення + 1 речення
+     чому. **Перший рядок цього розділу — ЗАВЖДИ, без винятків:**
 
-Item 8 is the contract with `/tz-verify`. Item 9 is where your technical autonomy becomes
-visible and vetoable instead of silent. Item 7 keeps implementation honest — phases end in
-something demonstrable, not "60% of everything".
+     > Реалізацію вести в ізольованому git worktree (гілка `feat/{slug}`): агент сам
+     > створює worktree ДО першої правки, комітить часто, здає через push + Pull Request
+     > після зелених перевірок і прибирає worktree після мерджу. Незамерджену роботу
+     > можна знищити лише за явним словом «discard» від людини.
+
+     Це інструкція агенту-виконавцю, вшита в ТЗ. Користувач нею не керує і не мусить
+     розуміти git — виконавець, читаючи ТЗ, ізолюється сам.
+  10. Відкриті ризики — pre-mortem результат + ⚠️ ПРИПУЩЕННЯ
 
 ### Step 5 — Hand off
 
-Close with exactly this shape:
-
 ```
-✅ ТЗ підсилено: {path}
-Що змінилось — у changelog-блоці вгорі документа.
+✅ ТЗ готове: {path}
+Що змінилось відносно надиктованого — у changelog-блоці вгорі документа.
 {якщо були авто-прийняті: N правил прийнято автоматично — позначені ✅}
 {якщо були припущення: ⚠️ перевір розділ «Відкриті ризики»}
 
-Наступний крок — технічний аудит трьома незалежними моделями:
+Наступний крок — аудит трьома незалежними моделями:
 /tz-review {path}
 ```
 
@@ -198,23 +209,25 @@ Do NOT auto-run `/tz-review` — it is expensive; the user triggers it.
 
 ## Anti-patterns
 
-- A question without your proposed answer and reasoning. (The core protocol violation.)
+- Leading with questions instead of listening — the monologue comes first, always.
+- **Asking a question you could answer yourself with high confidence** — the #1 way this
+  skill becomes annoying. The confidence gate is not optional.
+- A question without a recommended answer AND the reasoning why it's the most correct one.
 - Two questions in one message.
-- Asking anything from the ❌ column — catch yourself, decide it, section 9.
-- Asking what the draft or the codebase already answers.
-- Arguing with the user's answer more than once.
-- A message without the «ФІНІШ» footer — the user must always see the exit.
-- Ignoring an informal stop signal because it wasn't the literal code word.
-- Editing the user's TZ before the Step 3 summary is approved.
+- Anything from the ❌ column — catch yourself, decide it, розділ 9.
+- Interrupting the dictation.
+- A message without the «ФІНІШ» footer.
+- Ignoring an informal stop because it wasn't the literal code word.
+- Editing/producing the TZ before the Step 3 summary is approved.
 - Rewriting the user's sound text with your own phrasing — insert and augment; their
-  draft is the backbone, you are the reinforcement.
-- Inventing business rules that trace to no answer — everything in section 4 is either
-  confirmed, ✅ авто-прийнято, or it doesn't exist.
-- Dragging past the budget. `/tz-review` exists to catch what the interview missed.
+  words are the backbone, you are the reinforcement.
+- Inventing business rules that trace to nothing — everything in розділ 4 is confirmed,
+  ✅ авто-прийнято, or doesn't exist.
+- Omitting the worktree instruction from розділ 9 — it is mandatory in every TZ.
 
 ## When NOT to invoke
 
-- The TZ is already complete and confirmed → straight to `/tz-review`.
-- Bugfix or trivial change → just do it, no interview.
-- The input already answers your whole gap list → skip to Step 3 summary, note
-  "інтерв'ю пропущено — чернетка була повна", still open with the JTBD statement.
+- ТЗ вже повне і підтверджене → одразу `/tz-review`.
+- Багфікс чи тривіальна зміна → просто зроби, без інтерв'ю.
+- Вхід уже відповідає на весь чек-лист → нуль питань, Step 3 summary одразу, з приміткою
+  «питань не було — вхід був повний», але JTBD-відкриття (Step 1) все одно обов'язкове.
