@@ -1,6 +1,6 @@
 # TZ Skills — крос-перевірка технічних завдань для Claude Code
 
-> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — all in ONE batched message (token economy), each with a recommended answer; skipped answers auto-take the recommendation (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors**; `/tz-verify` checks it was truly implemented. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
+> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — all in ONE batched message (token economy), each with a recommended answer; skipped answers auto-take the recommendation (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors** against a 12-category checklist that starts with Job-to-be-Done & success criteria; `/tz-verify` checks it was truly implemented. **`/tz-go`** chains it ALL hands-off: it answers its own questions instead of waiting for you, runs the review, then implements the final spec to completion without asking anything. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
 
 Конвеєр скілів для Claude Code, який прибирає головну проблему AI-розробки:
 **Claude каже «зробив», а насправді відхилився від задачі або пропустив половину.**
@@ -10,6 +10,11 @@
                           (структурує)  (аудит ТЗ)  (в ізольованому  (перевірка
                                                      worktree — це    виконання)
                                                      вшито у ТЗ)
+
+надиктовка → /tz-go ─────────────────────────────────────────────→ готовий PR
+             (той самий конвеєр ОДНИМ викликом: сам відповідає на власні
+              питання, сам проганяє рев'ю, сам реалізує до кінця — тебе
+              ніщо не чекає; свої рішення позначає в ТЗ для перечитування)
 ```
 
 - **`/tz-draft`** — **виговорюєшся 10-15 хвилин у вільному потоці** (або приносиш чернетку
@@ -31,9 +36,23 @@
   з [Superpowers brainstorming](https://github.com/obra/superpowers) (MIT).
 
 - **`/tz-review`** — перевіряє **технічне завдання (ТЗ) ПЕРЕД** тим, як віддати його в роботу.
-  Три незалежні LLM читають ТЗ за фіксованим чек-листом з 11 категорій (безпека, дані,
+  Три незалежні LLM читають ТЗ за фіксованим чек-листом з 12 категорій, **починаючи з
+  категорії 0 — Job-to-be-Done і вимірювані критерії успіху** (далі безпека, дані,
   приховані припущення, крайні випадки, UX/UI…), 3 ітерації, з перевіркою фактів у вебі.
-  Результат — знайдені діри у ТЗ і покращена версія.
+  ТЗ без чіткого JTBD і критеріїв успіху не проходить рев'ю по суті деталей — критики
+  зобов'язані сказати це прямо. Результат — знайдені діри у ТЗ і покращена версія.
+
+- **`/tz-go`** — **весь конвеєр одним викликом, без жодного очікування.** Для режиму
+  «я виговорився — далі все сам, я потім перечитаю»: ізолюється у worktree, читає правила
+  і пам'ять проєкту, будує ТЗ (що ПОЧИНАЄТЬСЯ з JTBD + критеріїв успіху), ставить собі
+  ~10 питань і **сам на них відповідає** (кожна відповідь — з позначкою «✅ авто-прийнято
+  (tz-go)» у ТЗ, щоб людина могла перекреслити її однією правкою), проганяє повний
+  `/tz-review`, а тоді реалізує фінальне ТЗ фаза за фазою до останнього критерію
+  приймання — не зупиняючись і нічого не перепитуючи. Ставка явна: ~80% само-відповідей
+  правильні, і неідеальна робота ЗАРАЗ цінніша за ідеальну, що чекає на людину. Єдине,
+  що виноситься людині, — жорсткі зовнішні блокери (гроші, чужі акаунти, перша
+  комунікація з реальною людиною) — і вони не зупиняють решту роботи, а стають чергою
+  готових до виконання дій у фінальному звіті.
 
 - **`/tz-verify`** — перевіряє, що **ТЗ реально виконано ПІСЛЯ** роботи, перед мерджем/деплоєм.
   Розбиває ТЗ на критерії приймання, і три незалежні LLM звіряють кожен критерій із реальним
@@ -91,6 +110,7 @@ cp providers.example.json ~/.claude/tz-providers.json
 bash lib/llm-critic.sh --smoke-all      # усі три слоти → OK
 
 # 5. Користуватись у Claude Code:
+#    /tz-go                      (виговорись — і ВЕСЬ конвеєр пройде сам, без питань до тебе)
 #    /tz-draft                   (виговорись 10-15 хв АБО дай чернетку — отримаєш повне ТЗ)
 #    /tz-review шлях/до/ТЗ.md    (перед роботою)
 #    /tz-verify шлях/до/ТЗ.md    (після роботи)

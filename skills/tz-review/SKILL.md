@@ -1,6 +1,6 @@
 ---
 name: tz-review
-description: Cross-review a TZ, architecture decision, or risky change through 3 independent LLM critics (any mix of Claude/Codex/Gemini CLIs, OpenRouter, or NVIDIA NIM) with a fixed 11-category checklist, 3 iterations, grounding loops, and orchestrator-driven synthesis. Invoke when the user has a major TZ ready for review or is choosing between significant technical approaches.
+description: Cross-review a TZ, architecture decision, or risky change through 3 independent LLM critics (any mix of Claude/Codex/Gemini CLIs, OpenRouter, or NVIDIA NIM) with a fixed 12-category checklist (0-11, starting with Job-to-be-Done & success criteria), 3 iterations, grounding loops, and orchestrator-driven synthesis. Invoke when the user has a major TZ ready for review or is choosing between significant technical approaches.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
@@ -68,7 +68,7 @@ Save to `{REVIEWS_DIR}/iter{N}_perplexity/OQ{i}_{slug}.md` with TL;DR, findings,
 
 **Design note — why parallel-independent, not debate:** 2025-2026 multi-agent research shows debate mode amplifies hallucination cascades and groupthink (22-61% anchoring rates in stateful/debate setups vs <10% in independent). For our task — finding a maximally diverse set of problems in a static artifact — independence wins. Debate is preferred for tasks where agents must converge on a single correct answer; that is not our task.
 
-**Prompt design:** each reviewer gets the same 11-category checklist (empirical +16pp coverage vs generic "review this code" per arxiv progressive-prompting study). Per-reviewer "lean especially on X" hints exploit comparative strengths without narrowing scope.
+**Prompt design:** each reviewer gets the same 12-category (0-11) checklist (empirical +16pp coverage vs generic "review this code" per arxiv progressive-prompting study). Per-reviewer "lean especially on X" hints exploit comparative strengths without narrowing scope.
 
 **Shared checklist** (`REVIEW_CHECKLIST`):
 
@@ -77,6 +77,7 @@ Go through EVERY category below. For each, either report findings or write "no i
 
 Every finding MUST cite the specific TZ section, heading, or paragraph it refers to (e.g., "Section 4.2", "heading 'Migration Plan'"). Findings without citation will be discarded.
 
+0. JOB-TO-BE-DONE & SUCCESS CRITERIA — start here, before everything else. Does the TZ state a clear Job-to-be-Done (when [situation], [who] wants [what], so that [business outcome])? Are there explicit, measurable success criteria (numbers or observable consequences, not "works well")? Does every requirement trace back to the stated JTBD — flag requirements that serve no stated job, and jobs that no requirement serves. A TZ that fails this category is not reviewable on the merits of its details; say so explicitly.
 1. SECURITY & AUTHORIZATION — authn/authz gaps, privilege escalation, IDOR, SSRF, secret handling, audit logging, rate limiting.
 2. DATA MODEL & INTEGRITY — schema correctness, constraint gaps, race conditions, concurrent-write safety, migration risks, backfill strategy.
 3. HIDDEN ASSUMPTIONS — things taken for granted without justification; tech choices without alternatives considered; "obvious" behavior that isn't.
@@ -91,7 +92,7 @@ Every finding MUST cite the specific TZ section, heading, or paragraph it refers
 
 Output format:
 - VERDICT: [ship-as-is | minor fixes | major rework | reject]
-- FINDINGS BY CATEGORY (1-11): bullet each, label severity [critical | high | medium | low], include TZ citation.
+- FINDINGS BY CATEGORY (0-11): bullet each, label severity [critical | high | medium | low], include TZ citation.
 - TOP 3 RISKS: ranked.
 - QUESTIONS FOR AUTHOR: anything still ambiguous.
 Be blunt. Do not soften.
@@ -130,17 +131,17 @@ run_reviewer() {
 
 # critic_a — hint: hidden assumptions (best for a fresh/no-context model)
 run_reviewer critic_a \
-  "You have no prior context on this project. Lean especially on category 3 (hidden assumptions) since you see this cold — but cover all 11." \
+  "You have no prior context on this project. Lean especially on category 3 (hidden assumptions) since you see this cold — but cover all 12 (0-11)." \
   {REVIEWS_DIR}/iter{N}_cli/critic_a_review.md &
 
 # critic_b — hint: security/data-model
 run_reviewer critic_b \
-  "Lean especially on categories 1 (security) and 2 (data model) — but cover all 11." \
+  "Lean especially on categories 1 (security) and 2 (data model) — but cover all 12 (0-11)." \
   {REVIEWS_DIR}/iter{N}_cli/critic_b_review.md &
 
 # critic_c — hint: architecture/long-term cost/alternatives
 run_reviewer critic_c \
-  "Lean especially on categories 4 (scope), 8 (maintainability), and propose alternative designs where you disagree — but cover all 11." \
+  "Lean especially on categories 4 (scope), 8 (maintainability), and propose alternative designs where you disagree — but cover all 12 (0-11)." \
   {REVIEWS_DIR}/iter{N}_cli/critic_c_review.md &
 
 wait
@@ -253,13 +254,13 @@ Append to `{REVIEWS_DIR}/REVIEW_JOURNEY.md`:
 
 ## Iteration policy — THREE iterations, mandatory
 
-Run Steps 1-7 **exactly three times**. Same 11-category checklist on every pass. The only things that change between iterations:
+Run Steps 1-7 **exactly three times**. Same 12-category (0-11) checklist on every pass. The only things that change between iterations:
 - The TZ itself (applied fixes from prior iteration).
 - The curated changelog prepended on iter-2 and iter-3.
 
 **Why three:** evidence supports multi-pass review; the TZ is different each pass so reviewers find new issues against the same checklist. Three is empirical default for diminishing returns.
 
-**Early stop:** only if all three reviewers return "ship-as-is" with zero findings across all 11 categories, AND grounding found no hallucinations. Log "early convergence confirmed at iter{N}". Rare — default is complete all three.
+**Early stop:** only if all three reviewers return "ship-as-is" with zero findings across all 12 categories (0-11), AND grounding found no hallucinations. Log "early convergence confirmed at iter{N}". Rare — default is complete all three.
 
 **After iteration 3:** produce `{REVIEWS_DIR}/FINAL_SUMMARY.md` with: findings matrix (category × severity × iteration), accepted vs rejected, hallucinations caught, remaining known risks, final TZ version.
 
