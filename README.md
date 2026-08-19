@@ -1,6 +1,6 @@
 # TZ Skills — крос-перевірка технічних завдань для Claude Code
 
-> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — all in ONE batched message (token economy), each with a recommended answer; skipped answers auto-take the recommendation (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors** against a 12-category checklist that starts with Job-to-be-Done & success criteria; `/tz-verify` checks it was truly implemented. **`/tz-go`** chains it ALL hands-off: it answers its own questions instead of waiting for you, runs the review, then implements the final spec to completion without asking anything. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
+> **EN (short):** A [Claude Code](https://docs.claude.com/en/docs/claude-code) skill pipeline from a spoken idea to a verified implementation: `/tz-draft` structures your free-flow dictation (or rough draft) into a spec, asking only the few business questions it can't answer itself — all in ONE batched message (token economy), each with a recommended answer; skipped answers auto-take the recommendation (type «ФІНІШ» to accept them all and finish anytime); `/tz-review` audits the spec with **three independent LLMs of different vendors** against a 12-category checklist that starts with Job-to-be-Done & success criteria; `/tz-verify` checks it was truly implemented. **`/tz-go`** chains it ALL: it asks you exactly ONE question at the start — answer the spec questions yourself, or let it answer them all (silence = it answers) — then never blocks again. Either way it prints EVERY question with its recommended answer into the chat as soon as the list is ready, long before the code, so you can read and overrule while it keeps working; then it runs the review and implements the final spec to completion. Worktree isolation for the implementing agent is embedded in every generated spec. Each critic slot is pluggable: local **Claude / Codex / Gemini CLI**, **OpenRouter**, or **free NVIDIA NIM** models. Start with [docs/SETUP.md](docs/SETUP.md).
 
 Конвеєр скілів для Claude Code, який прибирає головну проблему AI-розробки:
 **Claude каже «зробив», а насправді відхилився від задачі або пропустив половину.**
@@ -42,7 +42,11 @@
   ТЗ без чіткого JTBD і критеріїв успіху не проходить рев'ю по суті деталей — критики
   зобов'язані сказати це прямо. Результат — знайдені діри у ТЗ і покращена версія.
 
-- **`/tz-go`** — **весь конвеєр одним викликом, без жодного очікування.** Для режиму
+- **`/tz-go`** — **весь конвеєр одним викликом.** Ставить рівно ОДНЕ питання на старті:
+  відповідати на питання ТЗ сам чи це зробиш ти (мовчання = відповідає сам) — і більше
+  не зупиняється ніде. У будь-якому режимі **всі питання з рекомендованими відповідями
+  виводяться в чат одним блоком одразу**, щойно список готовий: задовго до коду, щоб ти
+  читав і міг перекреслити рішення, поки він працює далі. Для режиму
   «я виговорився — далі все сам, я потім перечитаю»: ізолюється у worktree, читає правила
   і пам'ять проєкту, будує ТЗ (що ПОЧИНАЄТЬСЯ з JTBD + критеріїв успіху + явних
   не-цілей «чого точно НЕ робимо»), інтерв'ює **сам себе батчами по 5 питань** із
@@ -115,7 +119,7 @@ cp providers.example.json ~/.claude/tz-providers.json
 bash lib/llm-critic.sh --smoke-all      # усі три слоти → OK
 
 # 5. Користуватись у Claude Code:
-#    /tz-go                      (виговорись — і ВЕСЬ конвеєр пройде сам, без питань до тебе)
+#    /tz-go                      (виговорись — одне питання на старті, далі ВЕСЬ конвеєр сам)
 #    /tz-draft                   (виговорись 10-15 хв АБО дай чернетку — отримаєш повне ТЗ)
 #    /tz-review шлях/до/ТЗ.md    (перед роботою)
 #    /tz-verify шлях/до/ТЗ.md    (після роботи)
