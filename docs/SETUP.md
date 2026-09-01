@@ -72,14 +72,14 @@ cp ~/tz-skills/providers.example.json ~/.claude/tz-providers.json
 
 ### Профіль A — «маю лише Claude» (рекомендовано для старту, безкоштовно)
 
-Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні вендори — DeepSeek і Qwen):
+Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні вендори — OpenAI gpt-oss і MiniMax; живі станом на 01.09.2026, перевірено `--smoke-all`):
 
 ```json
 {
   "critics": {
     "critic_a": { "backend": "claude-cli" },
-    "critic_b": { "backend": "nim", "model": "deepseek-ai/deepseek-r1" },
-    "critic_c": { "backend": "nim", "model": "qwen/qwen2.5-coder-32b-instruct" }
+    "critic_b": { "backend": "nim", "model": "openai/gpt-oss-120b" },
+    "critic_c": { "backend": "nim", "model": "minimaxai/minimax-m3" }
   }
 }
 ```
@@ -115,7 +115,7 @@ Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні �
 ### NVIDIA NIM — БЕЗКОШТОВНО
 
 1. Зайди на **https://build.nvidia.com**, зареєструйся (можна через Google).
-2. Обери будь-яку модель (напр. DeepSeek-R1) → кнопка **Get API Key**.
+2. Обери будь-яку модель (напр. gpt-oss-120b) → кнопка **Get API Key**.
 3. Скопіюй ключ (починається з `nvapi-...`).
 4. Додай у ENV:
 
@@ -125,8 +125,10 @@ source ~/.bashrc
 ```
 
 Список безкоштовних моделей і їхні точні id — на build.nvidia.com у картці кожної моделі
-(поле `model` у виклику). Приклади: `deepseek-ai/deepseek-r1`,
-`qwen/qwen2.5-coder-32b-instruct`, `meta/llama-3.3-70b-instruct`.
+(поле `model` у виклику). Приклади, живі на 01.09.2026: `openai/gpt-oss-120b`,
+`minimaxai/minimax-m3`, `meta/llama-3.2-90b-vision-instruct`. NVIDIA знімає моделі
+без попередження (deepseek-r1 → 404, qwen2.5-coder → «end of life» у травні 2026),
+тому `--smoke-all` — обовʼязковий крок, а не формальність.
 
 ### OpenRouter — платно (per-token)
 

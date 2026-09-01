@@ -7,7 +7,7 @@
 
 ## 1. NVIDIA NIM — БЕЗКОШТОВНО, без картки ⭐ рекомендовано
 
-NVIDIA роздає 80+ hosted-моделей безкоштовно (DeepSeek, Qwen, Llama та ін.). Картка не потрібна.
+NVIDIA роздає 80+ hosted-моделей безкоштовно (OpenAI gpt-oss, MiniMax, Llama, Kimi та ін.). Картка не потрібна.
 
 ### Реєстрація і ключ
 
@@ -34,9 +34,11 @@ NVIDIA роздає 80+ hosted-моделей безкоштовно (DeepSeek, 
 
 | id моделі | навіщо | вендор |
 |---|---|---|
-| `deepseek-ai/deepseek-r1` | сильне міркування — гарний критик | DeepSeek |
-| `qwen/qwen2.5-coder-32b-instruct` | заточена під код | Qwen |
-| `meta/llama-3.3-70b-instruct` | універсальна, стабільна | Meta |
+| `openai/gpt-oss-120b` | сильне міркування, відповідає за ~1 с — гарний критик | OpenAI |
+| `minimaxai/minimax-m3` | самостійний вендор, ~8 с | MiniMax |
+| `meta/llama-3.2-90b-vision-instruct` | резерв третього вендора, ~30 с | Meta |
+
+> ⚠️ NVIDIA знімає моделі без попередження: `deepseek-ai/deepseek-r1` дає 404, `qwen/qwen2.5-coder-32b-instruct` — «end of life» з 12.05.2026. Таблиця вище перевірена живим викликом **01.09.2026**. Перед першим запуском і після будь-якої паузи — `bash ~/tz-skills/lib/llm-critic.sh --smoke-all`.
 
 > Точні актуальні id — у картці кожної моделі на build.nvidia.com (кнопка коду показує рядок `model="..."`).
 

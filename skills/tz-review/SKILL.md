@@ -84,7 +84,7 @@ Every finding MUST cite the specific TZ section, heading, or paragraph it refers
 4. SCOPE & COMPLEXITY — feature creep, over-engineering, missing MVP cutline, premature abstractions.
 5. OPERATIONAL CONCERNS — monitoring, alerting, rollback plan, feature flags, migration safety, on-call runbook, cost envelope.
 6. FAILURE MODES & EDGE CASES — partial failures, retries/idempotency, timeout behavior, adversarial input, load spikes, dependency outages.
-7. TESTABILITY & VERIFICATION — how each requirement will be proven working; missing test strategy; unreachable states.
+7. TESTABILITY & VERIFICATION — how each requirement will be proven working; missing test strategy; unreachable states. Apply the REGENERATION TEST to each module the TZ touches: "if this file were deleted and an agent rewrote it from the TZ + docs + tests alone, what would break?" If the answer is "everything" — the knowledge lives in the code, not in the spec; flag it as a finding (the TZ must capture that intent).
 8. MAINTAINABILITY & LONG-TERM COST — coupling, ownership boundaries, doc debt, reversibility of decisions.
 9. USER EXPERIENCE (UX) — user flows end-to-end, silent failures visible to users, confusing error states, unnecessary steps, cognitive load, empty/loading/error states, accessibility (a11y, WCAG), i18n/l10n, mobile responsiveness, perceived performance.
 10. USER INTERFACE (UI) — visual design consistency with existing design system, component reuse vs one-off styles, layout/spacing/typography, information hierarchy, color/contrast, interaction affordances (buttons look clickable, disabled states clear), form design, dark mode if applicable.
@@ -110,8 +110,15 @@ TZ_CONTENT="$(cat {TZ_DIR}/TZ_*.md)"
 # TZ_CONTENT="$(printf '%s\n\n%s' "$(cat {REVIEWS_DIR}/iter{N}_changelog.md)" "$(cat {TZ_DIR}/TZ_*.md)")"
 
 # Wrap each critic in timeout (10 min) + retry-once on nonzero exit.
-# If a reviewer still fails after retry, log the failure and CONTINUE with the others.
-# Never block the whole protocol on one flaky backend.
+# If a reviewer still fails after retry, log the failure and CONTINUE with the others —
+# but NEVER present the result as a full 3-critic review. Rule (added 2026-09-01):
+#   * 3 slots alive, 3 vendors → normal review.
+#   * 2 slots alive, 2 DIFFERENT vendors → continue, and stamp EVERY verdict line and the
+#     journal header with «⚠️ REVIEW DEGRADED: 2 of 3 critics ran (<which failed>)».
+#   * <2 alive, or the survivors share a vendor → STOP. One model checking itself is an
+#     echo, not a review. Print the smoke-test failure, point to SETUP.md (dead model id →
+#     404/410 is the usual cause), and do not continue until fixed.
+# A silent drop from 3 critics to 1 is exactly the "quiet success" this skill exists to catch.
 
 run_reviewer() {
   local slot="$1" hint="$2" out="$3"

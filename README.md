@@ -155,8 +155,8 @@ bash ~/tz-skills/lib/tz-skills-update.sh --check  # тільки перевір�
 {
   "critics": {
     "critic_a": { "backend": "claude-cli" },
-    "critic_b": { "backend": "nim", "model": "deepseek-ai/deepseek-r1" },
-    "critic_c": { "backend": "nim", "model": "qwen/qwen2.5-coder-32b-instruct" }
+    "critic_b": { "backend": "nim", "model": "openai/gpt-oss-120b" },
+    "critic_c": { "backend": "nim", "model": "minimaxai/minimax-m3" }
   }
 }
 ```
