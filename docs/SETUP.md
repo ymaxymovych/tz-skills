@@ -5,6 +5,18 @@
 
 ---
 
+## Крок 0 (короткий шлях). Одна команда замість кроків 1–5
+
+```bash
+[ -d ~/tz-skills/.git ] && git -C ~/tz-skills pull --ff-only || git clone https://github.com/ymaxymovych/tz-skills.git ~/tz-skills
+cd /тека/твого/проєкту && bash ~/tz-skills/lib/bootstrap-student.sh
+```
+
+Скрипт робить кроки 1–5 нижче сам (плюс ставить комплект пам'яті parallel-ai-dev і блок
+IMMUNE у `CLAUDE.md`) і показує таблицю, що лишилось. Єдине, що він не може зробити за
+тебе, — взяти ключ NVIDIA (крок 4): він скаже, коли і де. Кроки нижче — для розуміння
+або ручного ремонту.
+
 ## Крок 0. Перевір передумови
 
 ```bash
