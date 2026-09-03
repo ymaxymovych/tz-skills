@@ -1,10 +1,24 @@
 ---
 name: tz-draft
-description: Turn the user's free-flow spoken monologue (10-15 min of dictated thoughts) or rough TZ draft into a complete, structured TZ — WITHOUT interrogating them. The skill structures what was said first, then sends ONE message containing the Job-to-be-Done readback plus ALL its questions as a single batch (typically 0-3, hard cap 7) — each question arriving WITH the recommended answer and why it's right. The user answers everything in one reply («1а, 2 так, 3 своя відповідь…»); skipped questions automatically take the recommendation. «ФІНІШ» at any moment accepts all recommended answers and produces the strengthened TZ immediately. Batching is deliberate token economy: every extra Q-A round forces a re-read of the whole chat history. Technical choices are never asked; the TZ always embeds the instruction for the implementing agent to work in an isolated git worktree. Invoke when the user dictates an idea, brings a draft TZ, or says "допоможи зробити ТЗ" / "прожени ТЗ".
+description: Turn the user's free-flow spoken monologue (10-15 min of dictated thoughts) or rough TZ draft into a complete, structured TZ — WITHOUT interrogating them. The skill structures what was said first, then sends ONE message containing the Job-to-be-Done readback plus ALL its questions as a single batch (typically 0-3, hard cap 7) — each question arriving WITH the recommended answer and why it's right. The user answers everything in one reply («1а, 2 так, 3 своя відповідь…»); skipped questions automatically take the recommendation. «ФІНІШ» at any moment accepts all recommended answers and produces the strengthened TZ immediately. Batching is deliberate token economy: every extra Q-A round forces a re-read of the whole chat history. Technical choices are never asked; the TZ always embeds the instruction for the implementing agent to work in an isolated git worktree. Invoke when the user dictates an idea, brings a draft TZ, or says "допоможи зробити ТЗ" / "прожени ТЗ". Works in whatever language the user writes in (Ukrainian, English, any other).
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # TZ Draft — structure the flow, ask only the leftovers
+
+## Language
+
+Work in the language the user writes or dictates in. Detect it from the dictation, the
+draft, or the first message; if it is mixed or unclear, do not ask — use English.
+Everything user-facing follows that language: the TZ document, the questions and their
+recommended answers, the review journal, progress lines, the final report, and any commit
+messages you write on the user's behalf. Keep verbatim: command names (`/tz-go`), file
+names, code, config keys, and the code words — «ФІНІШ», "FINISH" and "DONE" are the SAME
+code word in any language. The Ukrainian text blocks inside this skill are templates of
+MEANING, not strings to paste: render them faithfully in the user's language. Prompts sent
+to critic models may stay in English (models handle it best), but every finding you quote
+back to the user is translated. Never switch language mid-run because a source file or a
+kit template happens to be in another language.
 
 Upstream companion to `/tz-review` and `/tz-verify`. The pipeline is:
 
@@ -170,7 +184,7 @@ Rules:
 - Якщо відповіді розкрили, що це два проєкти → сказати, запропонувати який з них v1
   (YAGNI) — у тому самому повідомленні, що й видача.
 
-### The code word — «ФІНІШ»
+### The code word — «ФІНІШ» / "FINISH" / "DONE" (same word, any language)
 
 Printed at the end of EVERY message of this skill:
 

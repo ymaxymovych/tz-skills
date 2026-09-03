@@ -84,14 +84,14 @@ cp ~/tz-skills/providers.example.json ~/.claude/tz-providers.json
 
 ### Профіль A — «маю лише Claude» (рекомендовано для старту, безкоштовно)
 
-Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні вендори — OpenAI gpt-oss і MiniMax; живі станом на 01.09.2026, перевірено `--smoke-all`):
+Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні вендори — MiniMax і NVIDIA; живі станом на 03.09.2026). NVIDIA знімає моделі без попередження (deepseek-r1 → 404, qwen2.5-coder → EOL 12.05.2026, gpt-oss-120b → EOL 03.09.2026). Тому `bootstrap-student.sh` НЕ зашиває моделі: він пробує список кандидатів живим викликом і бере перші дві, що відповідають, від РІЗНИХ вендорів; повторний запуск замінює мертві слоти (копія `.bak`). Ручний дефолт на 03.09.2026: `minimaxai/minimax-m3` + `nvidia/nemotron-3.5-lightning-30b-a3b`.
 
 ```json
 {
   "critics": {
     "critic_a": { "backend": "claude-cli" },
-    "critic_b": { "backend": "nim", "model": "openai/gpt-oss-120b" },
-    "critic_c": { "backend": "nim", "model": "minimaxai/minimax-m3" }
+    "critic_b": { "backend": "nim", "model": "minimaxai/minimax-m3" },
+    "critic_c": { "backend": "nim", "model": "nvidia/nemotron-3.5-lightning-30b-a3b" }
   }
 }
 ```
@@ -127,7 +127,7 @@ Claude CLI + дві безкоштовні моделі NVIDIA NIM (різні �
 ### NVIDIA NIM — БЕЗКОШТОВНО
 
 1. Зайди на **https://build.nvidia.com**, зареєструйся (можна через Google).
-2. Обери будь-яку модель (напр. gpt-oss-120b) → кнопка **Get API Key**.
+2. Обери будь-яку модель (напр. minimax-m3) → кнопка **Get API Key**.
 3. Скопіюй ключ (починається з `nvapi-...`).
 4. Додай у ENV:
 
@@ -137,10 +137,11 @@ source ~/.bashrc
 ```
 
 Список безкоштовних моделей і їхні точні id — на build.nvidia.com у картці кожної моделі
-(поле `model` у виклику). Приклади, живі на 01.09.2026: `openai/gpt-oss-120b`,
-`minimaxai/minimax-m3`, `meta/llama-3.2-90b-vision-instruct`. NVIDIA знімає моделі
-без попередження (deepseek-r1 → 404, qwen2.5-coder → «end of life» у травні 2026),
-тому `--smoke-all` — обовʼязковий крок, а не формальність.
+(поле `model` у виклику). Приклади, живі на 03.09.2026: `minimaxai/minimax-m3`,
+`nvidia/nemotron-3.5-lightning-30b-a3b`, `nvidia/nemotron-3-super-120b-a12b`, `openai/gpt-oss-20b`.
+NVIDIA знімає моделі без попередження (deepseek-r1 → 404, qwen2.5-coder → EOL 12.05.2026,
+gpt-oss-120b → EOL 03.09.2026), тому `--smoke-all` — обовʼязковий крок, а не формальність,
+а `bootstrap-student.sh` підбирає живі моделі сам.
 
 ### OpenRouter — платно (per-token)
 

@@ -1,10 +1,24 @@
 ---
 name: tz-verify
-description: Verify a TZ has been fully implemented. Cross-checks branch/PR/diff against acceptance criteria using 3 independent LLM critics (any mix of Claude/Codex/Gemini CLIs, OpenRouter, or NVIDIA NIM), per-AC focused evidence bundles with prompt-injection delimiters, citation+grep validation, and a 5-tier verdict (BLOCK / FIX-FIRST / SAFE-TO-COMMIT / SAFE-TO-DEPLOY-AFTER-CHECK / INSUFFICIENT-EVIDENCE). Read-only against source — only writes inside the verifications directory. Invoke after implementing a major TZ, before merge or deploy. Complement to /tz-review (which reviews specs *before* implementation).
+description: Verify a TZ has been fully implemented. Cross-checks branch/PR/diff against acceptance criteria using 3 independent LLM critics (any mix of Claude/Codex/Gemini CLIs, OpenRouter, or NVIDIA NIM), per-AC focused evidence bundles with prompt-injection delimiters, citation+grep validation, and a 5-tier verdict (BLOCK / FIX-FIRST / SAFE-TO-COMMIT / SAFE-TO-DEPLOY-AFTER-CHECK / INSUFFICIENT-EVIDENCE). Read-only against source — only writes inside the verifications directory. Invoke after implementing a major TZ, before merge or deploy. Complement to /tz-review (which reviews specs *before* implementation). Works in whatever language the user writes in (Ukrainian, English, any other).
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # TZ Implementation Verification Protocol
+
+## Language
+
+Work in the language the user writes or dictates in. Detect it from the dictation, the
+draft, or the first message; if it is mixed or unclear, do not ask — use English.
+Everything user-facing follows that language: the TZ document, the questions and their
+recommended answers, the review journal, progress lines, the final report, and any commit
+messages you write on the user's behalf. Keep verbatim: command names (`/tz-go`), file
+names, code, config keys, and the code words — «ФІНІШ», "FINISH" and "DONE" are the SAME
+code word in any language. The Ukrainian text blocks inside this skill are templates of
+MEANING, not strings to paste: render them faithfully in the user's language. Prompts sent
+to critic models may stay in English (models handle it best), but every finding you quote
+back to the user is translated. Never switch language mid-run because a source file or a
+kit template happens to be in another language.
 
 **Skill version:** 4.1.0 (adds opt-in Queen→Workers fan-out — Step 3.5)
 **Report schema version:** 1.2 (adds audit log + ac_schema_version)

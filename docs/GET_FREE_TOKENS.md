@@ -34,11 +34,12 @@ NVIDIA роздає 80+ hosted-моделей безкоштовно (OpenAI gpt
 
 | id моделі | навіщо | вендор |
 |---|---|---|
-| `openai/gpt-oss-120b` | сильне міркування, відповідає за ~1 с — гарний критик | OpenAI |
-| `minimaxai/minimax-m3` | самостійний вендор, ~8 с | MiniMax |
-| `meta/llama-3.2-90b-vision-instruct` | резерв третього вендора, ~30 с | Meta |
+| `minimaxai/minimax-m3` | самостійний вендор, ~1 с | MiniMax |
+| `nvidia/nemotron-3.5-lightning-30b-a3b` | швидка, ~1 с | NVIDIA |
+| `nvidia/nemotron-3-super-120b-a12b` | сильніша, ~6 с | NVIDIA |
+| `openai/gpt-oss-20b` | резерв, ~40 с | OpenAI |
 
-> ⚠️ NVIDIA знімає моделі без попередження: `deepseek-ai/deepseek-r1` дає 404, `qwen/qwen2.5-coder-32b-instruct` — «end of life» з 12.05.2026. Таблиця вище перевірена живим викликом **01.09.2026**. Перед першим запуском і після будь-якої паузи — `bash ~/tz-skills/lib/llm-critic.sh --smoke-all`.
+> ⚠️ NVIDIA знімає моделі без попередження: `deepseek-ai/deepseek-r1` → 404, `qwen/qwen2.5-coder-32b-instruct` → EOL 12.05.2026, `openai/gpt-oss-120b` → EOL 03.09.2026 (прожив у цій таблиці два дні). Таблиця вище перевірена живим викликом **03.09.2026**. Не вписуй моделі руками — запусти `bash ~/tz-skills/lib/bootstrap-student.sh`: він пробує кандидатів і замінює мертві слоти сам. Перед першим запуском і після будь-якої паузи — `bash ~/tz-skills/lib/llm-critic.sh --smoke-all`.
 
 > Точні актуальні id — у картці кожної моделі на build.nvidia.com (кнопка коду показує рядок `model="..."`).
 

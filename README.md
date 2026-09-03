@@ -109,6 +109,8 @@
 bash ~/tz-skills/lib/bootstrap-student.sh
 ```
 
+**English-speaking users:** run the same command with `KIT_LANG=en bash ~/tz-skills/lib/bootstrap-student.sh` — the installer, its summary table and the IMMUNE rules block are then in English, and all four `/tz-*` skills answer in whatever language you write in.
+
 `bootstrap-student.sh` ставить одним заходом: комплект «пам'ять проєкту»
 [parallel-ai-dev](https://github.com/ymaxymovych/parallel-ai-dev) (клон + `init-memory` у проєкті),
 чотири команди `/tz-*`, профіль критиків «лише Claude + 2 безкоштовні NIM», блок правил
@@ -171,8 +173,8 @@ bash ~/tz-skills/lib/tz-skills-update.sh --check  # тільки перевір�
 {
   "critics": {
     "critic_a": { "backend": "claude-cli" },
-    "critic_b": { "backend": "nim", "model": "openai/gpt-oss-120b" },
-    "critic_c": { "backend": "nim", "model": "minimaxai/minimax-m3" }
+    "critic_b": { "backend": "nim", "model": "minimaxai/minimax-m3" },
+    "critic_c": { "backend": "nim", "model": "nvidia/nemotron-3.5-lightning-30b-a3b" }
   }
 }
 ```

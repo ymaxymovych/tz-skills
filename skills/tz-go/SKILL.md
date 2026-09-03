@@ -1,10 +1,24 @@
 ---
 name: tz-go
-description: The full TZ pipeline in ONE invocation. Asks the human exactly ONE question at the very start - answer the spec questions yourself, or let the agent answer them all (silence = agent answers) - and never blocks again. Either way it prints EVERY question with its recommended answer into the chat as soon as the list is complete, long before the code, so the human can read and overrule while work continues. Takes the user's dictation or rough draft and runs the whole cycle - isolate in a git worktree, read the project's rules and external memory, structure the input into a TZ that OPENS with Job-to-be-Done + measurable success criteria + explicit non-goals, interview ITSELF in batches of 5 questions with a self-qualification check between batches (the agent decides when it knows enough to commit to every decision; hard cap 15, verdict recorded in the TZ), run the full /tz-review 3-critic audit, falsify the spec's core hypothesis with the cheapest possible live-data test BEFORE the first line of code, then implement the final TZ phase by phase without stopping or asking, until every acceptance criterion is done (and /tz-verify confirms it, if available). The bet is explicit - ~80% of self-answered questions are right, and imperfect work delivered NOW beats perfect work blocked on a human. Invoke when the user dictates an idea and wants the whole cycle to run itself - "/tz-go", "зроби під ключ", "не питай - роби", "сам відповідай і працюй".
+description: The full TZ pipeline in ONE invocation. Asks the human exactly ONE question at the very start - answer the spec questions yourself, or let the agent answer them all (silence = agent answers) - and never blocks again. Either way it prints EVERY question with its recommended answer into the chat as soon as the list is complete, long before the code, so the human can read and overrule while work continues. Takes the user's dictation or rough draft and runs the whole cycle - isolate in a git worktree, read the project's rules and external memory, structure the input into a TZ that OPENS with Job-to-be-Done + measurable success criteria + explicit non-goals, interview ITSELF in batches of 5 questions with a self-qualification check between batches (the agent decides when it knows enough to commit to every decision; hard cap 15, verdict recorded in the TZ), run the full /tz-review 3-critic audit, falsify the spec's core hypothesis with the cheapest possible live-data test BEFORE the first line of code, then implement the final TZ phase by phase without stopping or asking, until every acceptance criterion is done (and /tz-verify confirms it, if available). The bet is explicit - ~80% of self-answered questions are right, and imperfect work delivered NOW beats perfect work blocked on a human. Invoke when the user dictates an idea and wants the whole cycle to run itself - "/tz-go", "зроби під ключ", "не питай - роби", "сам відповідай і працюй". Works in whatever language the user writes in (Ukrainian, English, any other).
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # TZ Go — від надиктовки до виконаного ТЗ без жодної зупинки
+
+## Language
+
+Work in the language the user writes or dictates in. Detect it from the dictation, the
+draft, or the first message; if it is mixed or unclear, do not ask — use English.
+Everything user-facing follows that language: the TZ document, the questions and their
+recommended answers, the review journal, progress lines, the final report, and any commit
+messages you write on the user's behalf. Keep verbatim: command names (`/tz-go`), file
+names, code, config keys, and the code words — «ФІНІШ», "FINISH" and "DONE" are the SAME
+code word in any language. The Ukrainian text blocks inside this skill are templates of
+MEANING, not strings to paste: render them faithfully in the user's language. Prompts sent
+to critic models may stay in English (models handle it best), but every finding you quote
+back to the user is translated. Never switch language mid-run because a source file or a
+kit template happens to be in another language.
 
 Об'єднує весь конвеєр в один виклик:
 
@@ -51,7 +65,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ## Фаза 0 — ОДНЕ питання про режим, потім ізоляція і контекст
 
 **Найперша дія скіла — це питання. Єдине за весь прогін.** Постав його ДО будь-якої
-іншої роботи, одним коротким повідомленням, і одразу поясни правило економії:
+іншої роботи, одним коротким повідомленням, і одразу поясни правило економії
+(блок нижче — український оригінал; вимовляй його мовою користувача, див. «Language»;
+«ФІНІШ» = "FINISH" = "DONE"):
 
 ```
 Перед стартом — одне питання, більше не потурбую.

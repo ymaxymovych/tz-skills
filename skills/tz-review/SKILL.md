@@ -1,10 +1,24 @@
 ---
 name: tz-review
-description: Cross-review a TZ, architecture decision, or risky change through 3 independent LLM critics (any mix of Claude/Codex/Gemini CLIs, OpenRouter, or NVIDIA NIM) with a fixed 12-category checklist (0-11, starting with Job-to-be-Done & success criteria), 3 iterations, grounding loops, and orchestrator-driven synthesis. Invoke when the user has a major TZ ready for review or is choosing between significant technical approaches.
+description: Cross-review a TZ, architecture decision, or risky change through 3 independent LLM critics (any mix of Claude/Codex/Gemini CLIs, OpenRouter, or NVIDIA NIM) with a fixed 12-category checklist (0-11, starting with Job-to-be-Done & success criteria), 3 iterations, grounding loops, and orchestrator-driven synthesis. Invoke when the user has a major TZ ready for review or is choosing between significant technical approaches. Works in whatever language the user writes in (Ukrainian, English, any other).
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # TZ Cross-Review Protocol
+
+## Language
+
+Work in the language the user writes or dictates in. Detect it from the dictation, the
+draft, or the first message; if it is mixed or unclear, do not ask — use English.
+Everything user-facing follows that language: the TZ document, the questions and their
+recommended answers, the review journal, progress lines, the final report, and any commit
+messages you write on the user's behalf. Keep verbatim: command names (`/tz-go`), file
+names, code, config keys, and the code words — «ФІНІШ», "FINISH" and "DONE" are the SAME
+code word in any language. The Ukrainian text blocks inside this skill are templates of
+MEANING, not strings to paste: render them faithfully in the user's language. Prompts sent
+to critic models may stay in English (models handle it best), but every finding you quote
+back to the user is translated. Never switch language mid-run because a source file or a
+kit template happens to be in another language.
 
 Evidence-based multi-LLM review for specs, architecture decisions, and high-stakes PRs. Design grounded in 2026 multi-agent research: checklist-driven prompts (≈+16pp coverage vs free-form), independent parallel critique (no debate → avoids groupthink and hallucination cascades), stateless reviewers + orchestrator-curated changelogs (hybrid against both anchoring bias and coherence loss), grounding loops (post-review verification of factual claims), citation requirement (findings cite TZ sections so hallucinated findings are detectable).
 
