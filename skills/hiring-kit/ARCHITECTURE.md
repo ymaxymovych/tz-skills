@@ -66,7 +66,7 @@ model HiringCandidate {
   links            Json                @default("[]") // [{kind:'portfolio'|'robota'|'linkedin'|'other', url}]
   roles            String[]            @default([])
   tags             String[]            @default([])
-  consentRecontact Boolean             @default(true) // true лише для тих, хто сам написав у бот; імпорт ставить false явно
+  consentRecontact Boolean             @default(false) // бот ставить true явно тому, хто сам йому написав; імпорт лишає false
   source           String?             // 'bot'|'telegram'|'robota.ua'|'import'|...
   firstSeenAt      DateTime            @default(now())
   lastContactAt    DateTime?           // останнє повідомлення в будь-який бік
@@ -130,9 +130,7 @@ model HiringEvent {
 }
 ```
 
-Для нового проєкту: `consentRecontact` краще зробити `@default(false)` і ставити `true`
-явно в боті — тоді забутий прапорець у новому шляху створення кандидата не дає згоди
-мовчки. Стадії, статуси, вердикти — рядки, а не enum БД: значення стабільні, підписи
+`consentRecontact` за замовчуванням `false`, а `true` бот ставить явно при створенні кандидата — тоді забутий прапорець у новому шляху створення кандидата не дає згоди мовчки (так стало і в нашому проді з 13.09.2026). Стадії, статуси, вердикти — рядки, а не enum БД: значення стабільні, підписи
 переписуються без міграції; перелік і перевірки — в одному модулі коду.
 
 ## 3. Стан-машина стадій
