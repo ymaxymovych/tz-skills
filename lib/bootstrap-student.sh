@@ -107,14 +107,14 @@ fi
 say "4/7 $(L 'Скіли Claude Code' 'Claude Code skills') → $SKILLS_DIR"
 mkdir -p "$SKILLS_DIR"
 INSTALLED=0
-for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment; do
+for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment hiring-kit; do
   src="$TZ_ROOT/skills/$s"; dst="$SKILLS_DIR/$s"
   [ -d "$src" ] || continue
   rm -rf "$dst.tmp-bootstrap" && cp -r "$src" "$dst.tmp-bootstrap" && rm -rf "$dst" && mv "$dst.tmp-bootstrap" "$dst" \
     && { say "   ✓ /$s"; INSTALLED=$((INSTALLED+1)); } || say "   ✗ /$s $(L 'не скопіювався' 'failed to copy')"
 done
-if [ "$INSTALLED" -eq 6 ]; then ok "$(L '6 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment встановлено' '6 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment installed')"; else
-  bad "$(L "Встановлено $INSTALLED/6 скілів" "Installed $INSTALLED/6 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
+if [ "$INSTALLED" -eq 7 ]; then ok "$(L '7 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit встановлено' '7 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit installed')"; else
+  bad "$(L "Встановлено $INSTALLED/7 скілів" "Installed $INSTALLED/7 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
 
 # ── 5. Critics: providers.json + NVIDIA key ──────────────────────────────────
 say "5/7 $(L 'Критики' 'Critics') (providers.json → $PROVIDERS)"
