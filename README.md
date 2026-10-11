@@ -210,6 +210,12 @@ bash ~/tz-skills/lib/tz-skills-update.sh --check  # тільки перевір�
   Несе `ARCHITECTURE.md` (теки L0→L1→L2, контракти, розклад Windows/macOS, доставка,
   експорт), `PITFALLS.md` (26 граблів), `prompts.md` (ресьорч теми, оновлення сторінки,
   відповідь із джерелами, експорт), `scripts/brain.py` (один файл, лише stdlib Python).
+- **`/second-brain`** (`skills/second-brain/`) — розгорнути особисту бібліотеку знань, що росте
+  сама: назвати 3–7 тем → щотижня 5–10 перевірених знахідок на тему з URL і датою → дайджести,
+  сторінки тем, `INDEX.md` → відповідь на «що я знаю про X» з посиланнями; експорт HTML для
+  колег, доставка в Telegram. Несе `INTERVIEW.md`, `ARCHITECTURE.md`, `PITFALLS.md`,
+  `prompts.md`, `scripts/brain.py`. Пам'ять власних розмов (транскрипти → нічні вижимки →
+  `/recall`) — окремий сід: https://github.com/ymaxymovych/second-brain-seed.
 
 ## Поруч: коли чатів стає багато
 
