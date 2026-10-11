@@ -114,7 +114,7 @@ for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment hiring-k
     && { say "   ✓ /$s"; INSTALLED=$((INSTALLED+1)); } || say "   ✗ /$s $(L 'не скопіювався' 'failed to copy')"
 done
 if [ "$INSTALLED" -eq 8 ]; then ok "$(L '8 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain встановлено' '8 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain installed')"; else
-  bad "$(L "Встановлено $INSTALLED/7 скілів" "Installed $INSTALLED/7 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
+  bad "$(L "Встановлено $INSTALLED/8 скілів" "Installed $INSTALLED/8 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
 
 # ── 5. Critics: providers.json + NVIDIA key ──────────────────────────────────
 say "5/7 $(L 'Критики' 'Critics') (providers.json → $PROVIDERS)"
