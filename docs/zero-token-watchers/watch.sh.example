@@ -1,0 +1,37 @@
+# ЗРАЗОК з проєкту 2event — шляхи до логів, патерни і процеси підставте свої (див. README.md поруч).
+#!/usr/bin/env bash
+# One zero-token watcher: exits once, printing the reason. Args: <merges to wait for> [s41 run_streams pid or 0]
+N=${1:-3}; S41PID=0; WF=${2:-}; PROCS=${3:-train3.py stage_deploy.py split_s41}; EXTRA=${4:-}
+L=J:/2event-factory/logs/fixloop3.log; D=J:/2event-factory/logs/stage_deploy.log
+start=$(wc -l < "$L"); dstart=$(wc -l < "$D"); i=0
+new() { tail -n +$((start + 1)) "$L"; }
+while true; do
+  sleep 30; i=$((i + 1))
+  if [ -n "$WF" ] && grep -qE "^[0-9:]+ (DONE|BLOCKED)|rounds-exhausted" "$WF" 2>/dev/null; then echo "EVENT worker: $(tail -1 "$WF")"; exit 0; fi
+  m=$(new | grep -c "LANDED")
+  [ "$m" -ge "$N" ] && { echo "EVENT merges: $m landed"; new | grep LANDED; exit 0; }
+  e=$(new | grep -E "(ONELOOP|SLOOP) PR" | grep -v "merged'")
+  [ -n "$e" ] && { echo "EVENT loop ended without merge:"; echo "$e"; exit 0; }
+  e=$(new | grep -E "SPLIT .*(FAILED|failed|all parts merged)" | grep -v "fix ahead not started")
+  [ -n "$e" ] && { echo "EVENT split:"; echo "$e"; exit 0; }
+  if [ -n "$EXTRA" ]; then e=$(new | grep -E "$EXTRA" | grep -vE "${IGNORE:-^$}"); [ -n "$e" ] && { echo "EVENT extra:"; echo "$e"; exit 0; }; fi
+  r=$(new | grep -c "CI red alone")
+  [ "$r" -ge 5 ] && { echo "EVENT $r new 'CI red alone'"; new | grep "CI red alone" | tail -6; exit 0; }
+  e=$(tail -n +$((dstart + 1)) "$D" | grep -i "FAILED")
+  [ -n "$e" ] && { echo "EVENT deploy failed:"; echo "$e"; exit 0; }
+  age=$(( $(date +%s) - $(stat -c %Y "$L") ))
+  [ "$age" -ge 2400 ] && { echo "EVENT silence: fixloop3.log quiet for $((age / 60)) min"; exit 0; }
+  [ -n "$REPORT_AT" ] && [ "$(date -u +%H%M)" -ge "$REPORT_AT" ] && { echo "EVENT time: 19:50 Kyiv — report due"; exit 0; }
+  if [ $((i % 4)) -eq 0 ]; then
+    ps=$(powershell -NoProfile -c "Get-CimInstance Win32_Process -Filter \"Name like 'python%'\" | % { \"\$(\$_.ProcessId) \$(\$_.CommandLine)\" }" 2>/dev/null)
+    if [ -n "$ps" ]; then
+      for p in $PROCS; do
+        # WMI can return a partial list ("Call cancelled") — a process must be missing on two checks in a row
+        if echo "$ps" | grep -q "$p"; then eval "MISS_${p//[^a-z0-9]/_}=0"; else v="MISS_${p//[^a-z0-9]/_}"; eval "$v=\$(( \${$v:-0} + 1 ))"; [ "${!v}" -ge 2 ] && { echo "EVENT process dead: $p"; exit 0; }; fi
+      done
+      if [ "$S41PID" != 0 ] && ! echo "$ps" | grep -q "^$S41PID "; then
+        echo "EVENT S4-1 worker finished (run_streams $S41PID gone)"; tail -3 J:/2event-factory/logs/stages_s41.log 2>/dev/null; exit 0
+      fi
+    fi
+  fi
+done
