@@ -107,14 +107,26 @@ fi
 say "4/7 $(L 'Скіли Claude Code' 'Claude Code skills') → $SKILLS_DIR"
 mkdir -p "$SKILLS_DIR"
 INSTALLED=0
-for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment hiring-kit second-brain; do
+for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment hiring-kit second-brain compact-prep; do
   src="$TZ_ROOT/skills/$s"; dst="$SKILLS_DIR/$s"
   [ -d "$src" ] || continue
   rm -rf "$dst.tmp-bootstrap" && cp -r "$src" "$dst.tmp-bootstrap" && rm -rf "$dst" && mv "$dst.tmp-bootstrap" "$dst" \
     && { say "   ✓ /$s"; INSTALLED=$((INSTALLED+1)); } || say "   ✗ /$s $(L 'не скопіювався' 'failed to copy')"
 done
-if [ "$INSTALLED" -eq 8 ]; then ok "$(L '8 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain встановлено' '8 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain installed')"; else
-  bad "$(L "Встановлено $INSTALLED/8 скілів" "Installed $INSTALLED/8 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
+if [ "$INSTALLED" -eq 9 ]; then ok "$(L '9 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain /compact-prep встановлено' '9 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain /compact-prep installed')"; else
+  bad "$(L "Встановлено $INSTALLED/9 скілів" "Installed $INSTALLED/9 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
+
+# compact-prep: its safety net (PreCompact hook + the context-band mod). Safe to re-run; non-fatal.
+PY="$(command -v python3 || command -v python || true)"
+if [ -n "$PY" ] && [ -f "$TZ_ROOT/skills/compact-prep/scripts/install.py" ]; then
+  if "$PY" "$TZ_ROOT/skills/compact-prep/scripts/install.py" --with-mod --claude-dir "$(dirname "$SKILLS_DIR")" 2>&1 | sed 's/^/     /'; then
+    ok "$(L '/compact-prep: хук і мод context-band підключено' '/compact-prep: hook and context-band mod enabled')"
+  else
+    bad "$(L '/compact-prep: установник хука повернув помилку' '/compact-prep: hook installer failed')" "$(L "Запусти: $PY $TZ_ROOT/skills/compact-prep/scripts/install.py --with-mod" "Run: $PY $TZ_ROOT/skills/compact-prep/scripts/install.py --with-mod")"
+  fi
+else
+  say "   ⚠ $(L 'Python не знайдено — хук /compact-prep не підключено (скіл працює і без нього)' 'Python not found — /compact-prep hook not enabled (the skill works without it)')"
+fi
 
 # ── 5. Critics: providers.json + NVIDIA key ──────────────────────────────────
 say "5/7 $(L 'Критики' 'Critics') (providers.json → $PROVIDERS)"
