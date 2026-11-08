@@ -1,0 +1,22 @@
+{
+  "_comment": "Settings for background `claude -p` workers: ONLY the guards, nothing else from your user settings. Use: claude -p --setting-sources project,local --settings worker-settings.example.json < prompt.md   (do NOT use disableAllHooks: it switches the guards off too). Replace python3 with `py -3` on Windows if python3 is not on PATH.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [{ "type": "command", "command": "python3 \"$HOME/.claude/hooks/shell_guard.py\"", "timeout": 15 }]
+      },
+      {
+        "hooks": [{ "type": "command", "command": "python3 \"$HOME/.claude/hooks/loop_breaker.py\"", "timeout": 15 }]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$HOME/.claude/hooks/loop_breaker.py\"", "timeout": 15 },
+          { "type": "command", "command": "python3 \"$HOME/.claude/hooks/tool_hints.py\"", "timeout": 15 }
+        ]
+      }
+    ]
+  }
+}
