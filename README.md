@@ -102,6 +102,8 @@
 
 ## Одна команда для нових студентів (ставить УСЕ)
 
+Для Claude Code (Claude Desktop, вкладка Code) найпростіше одне речення: «Прочитай https://raw.githubusercontent.com/ymaxymovych/tz-skills/master/SEED.md і постав мені СКІЛ 0 у цю теку проєкту.» Або вручну:
+
 Відкрий Git Bash (на Windows) або термінал у теці свого проєкту і виконай:
 
 ```bash

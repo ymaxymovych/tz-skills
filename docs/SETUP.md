@@ -1,7 +1,8 @@
 # SETUP — встановлення за 10 хвилин
 
 Інструкція для Windows (Git Bash), macOS і Linux. Команди — для bash.
-На Windows відкрий **Git Bash** (не PowerShell, не cmd).
+Найпростіше — нічого не відкривати: встав у Claude Desktop (вкладка Code) речення «Прочитай https://raw.githubusercontent.com/ymaxymovych/tz-skills/master/SEED.md і постав мені СКІЛ 0 у цю теку проєкту.» — Claude сам запустить bash.
+Для ручного шляху: на Windows відкрий **Git Bash** (не PowerShell, не cmd).
 
 ---
 
