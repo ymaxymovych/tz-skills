@@ -128,6 +128,15 @@ else
   say "   ⚠ $(L 'Python не знайдено — хук /compact-prep не підключено (скіл працює і без нього)' 'Python not found — /compact-prep hook not enabled (the skill works without it)')"
 fi
 
+# agent-guards: hooks against mechanical shell failures (own installer, idempotent, optional).
+if [ -f "$TZ_ROOT/skills/agent-guards/install.sh" ]; then
+  if KIT_LANG="$KIT_LANG" bash "$TZ_ROOT/skills/agent-guards/install.sh" 2>&1 | sed 's/^/     /'; then
+    ok "$(L 'agent-guards: запобіжники агентів підключено (діють у нових сесіях)' 'agent-guards: agent guard hooks enabled (apply to new sessions)')"
+  else
+    bad "$(L 'agent-guards: установник повернув помилку' 'agent-guards: installer failed')" "$(L "Запусти: bash $TZ_ROOT/skills/agent-guards/install.sh і прочитай таблицю результату" "Run: bash $TZ_ROOT/skills/agent-guards/install.sh and read the result table")"
+  fi
+fi
+
 # ── 5. Critics: providers.json + NVIDIA key ──────────────────────────────────
 say "5/7 $(L 'Критики' 'Critics') (providers.json → $PROVIDERS)"
 mkdir -p "$(dirname "$PROVIDERS")"
