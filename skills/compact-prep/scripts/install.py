@@ -53,19 +53,9 @@ def main() -> int:
         say(f"✗ Не знайдено {HOOK_SRC} — запускай із клону tz-skills.")
         return 2
 
-    # 1. The hook file.
-    hooks_dir = claude / "hooks"
-    hooks_dir.mkdir(parents=True, exist_ok=True)
-    hook_dst = hooks_dir / HOOK_NAME
-    if not hook_dst.exists() or hook_dst.read_bytes() != HOOK_SRC.read_bytes():
-        shutil.copyfile(HOOK_SRC, hook_dst)
-        say(f"✓ Хук скопійовано: {hook_dst}")
-    else:
-        say(f"· Хук уже на місці: {hook_dst}")
-
     # 2. settings.json — read strictly; never write over a file we could not parse.
     if settings_path.exists():
-        raw = settings_path.read_text(encoding="utf-8")
+        raw = settings_path.read_text(encoding="utf-8-sig")
         try:
             settings = json.loads(raw) if raw.strip() else {}
         except json.JSONDecodeError as err:
@@ -76,6 +66,27 @@ def main() -> int:
     if not isinstance(settings, dict):
         say(f"✗ {settings_path} — не обʼєкт JSON. Нічого не змінено.")
         return 3
+
+    hooks = settings.get("hooks", {})
+    if not isinstance(hooks, dict):
+        say(f"✗ {settings_path}: hooks — має бути обʼєкт JSON. Нічого не змінено.")
+        return 3
+    if not isinstance(hooks.get("PreCompact", []), list):
+        say(f"✗ {settings_path}: hooks.PreCompact — має бути список JSON. Нічого не змінено.")
+        return 3
+    if not isinstance(settings.get("env", {}), dict):
+        say(f"✗ {settings_path}: env — має бути обʼєкт JSON. Нічого не змінено.")
+        return 3
+
+    # 1. The hook file.
+    hooks_dir = claude / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    hook_dst = hooks_dir / HOOK_NAME
+    if not hook_dst.exists() or hook_dst.read_bytes() != HOOK_SRC.read_bytes():
+        shutil.copyfile(HOOK_SRC, hook_dst)
+        say(f"✓ Хук скопійовано: {hook_dst}")
+    else:
+        say(f"· Хук уже на місці: {hook_dst}")
 
     changed = False
     command = f'"{fwd(Path(sys.executable))}" "{fwd(hook_dst)}"'
@@ -121,7 +132,7 @@ def main() -> int:
     # 3. Check what is now true, loudly.
     ok = True
     try:
-        json.loads(settings_path.read_text(encoding="utf-8"))
+        json.loads(settings_path.read_text(encoding="utf-8-sig"))
     except Exception as err:
         say(f"✗ settings.json після запису не читається: {err}")
         ok = False

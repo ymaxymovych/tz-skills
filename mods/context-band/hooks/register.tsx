@@ -2,7 +2,8 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Brain, Fill } from '../types'
-import { buildCheckpoint, missingSections, withCanon } from './canon'
+import { buildCheckpoint, lacking, midTurnWords, missingSections, withCanon } from './canon'
+import type { MidTurn } from './canon'
 
 const fill = atom({ plugin: 'context-band', key: 'fill' } as const, null)
 const brain = atom({ plugin: 'context-band', key: 'brain' } as const, null)
@@ -23,26 +24,60 @@ const TOOL_DESCRIPTION =
   'Стиснення стартує саме, щойно закінчиться поточна відповідь, — вставляти блок вручну не треба. ' +
   'Викликай лише після кроку 0 (усе довговічне вже у файлах, робота закомічена) і останньою дією ходу.'
 
+let compacting = false
+
+// The one compaction asked for through compact_now. It lives until a compaction of the main conversation stands
+// (session.compact clears it) or it is given up, so a timer left over from an earlier request does nothing.
+// Audit 10.11: 3 of 46 promises were lost when another chat's message opened a new turn inside the 1.5 s wait.
+let request: { id: number; text: string; turns: number } | null = null
+let requestSeq = 0
+const MAX_TURNS = 3
+const STALE_NOTE =
+  'УВАГА: блок нижче складено ДО останнього відрізка роботи (стиснення відклалося через новий хід). ' +
+  'ЗАРАЗ, ЧЕРГУ, ЛІЧИЛЬНИКИ й ВІДКРИТЕ онови за повідомленнями після виклику compact_now.\n'
+
 // The engine refuses compact while a turn runs; turn.complete still counts as inside it, so wait a beat and retry.
-const compactLater = ($: EngineInterface, text: string, attempt = 0) => {
+const compactLater = ($: EngineInterface, id: number, attempt = 0) => {
   $.clock.after(attempt === 0 ? 1500 : 3000, () => {
     void (async () => {
+      // A newer request, a compaction that already stood, or one running right now: this timer has nothing to do.
+      if (request?.id !== id || compacting) return
+      const text = (request.turns > 0 ? STALE_NOTE : '') + request.text
+      const later = 'спробую ще раз після наступної відповіді'
       try {
         const res = await $.session.compact({ instructions: text })
-        $.ui.toast(res.skip ? `Стиснення скасовано: ${res.skip}` : 'Чат стиснуто за /compact-prep — продовжуємо', { timeoutMs: 8000 })
+        // Answered either way; our own session.compact hook may not see a compaction we order ourselves.
+        if (request?.id === id) request = null
+        $.ui.toast(
+          res.skip !== undefined
+            ? `Стиснення скасовано: ${res.skip}`
+            : 'Чат стиснуто за /compact-prep — продовжуємо',
+          { timeoutMs: 8000 },
+        )
       } catch (err) {
+        const why = err instanceof Error ? err.message : String(err)
         // A headless / SDK session compacts only inside a turn: run /compact itself, as a person pasting the block would.
-        if (/headless|SDK/.test(err instanceof Error ? err.message : String(err))) {
+        if (/headless|SDK/.test(why)) {
           try {
-            await $.command.run({ command: 'compact', args: text })
-            return
+            const res = await $.command.run({ command: 'compact', args: text })
+            // Not proof it compacted: the request stays until session.compact sees a compaction stand.
+            if (res?.exitCode)
+              $.ui.toast(
+                `/compact-prep: /compact відмовив (код ${res.exitCode}) — ${later}`,
+                { timeoutMs: 15000 },
+              )
           } catch (cmdErr) {
-            $.ui.toast(`/compact-prep: /compact не запустився (${cmdErr instanceof Error ? cmdErr.message : String(cmdErr)})`, { timeoutMs: 15000 })
-            return
+            $.ui.toast(
+              `/compact-prep: /compact не запустився (${cmdErr instanceof Error ? cmdErr.message : String(cmdErr)}) — ${later}`,
+              { timeoutMs: 15000 },
+            )
           }
+          return
         }
-        if (attempt < 6) return compactLater($, text, attempt + 1)
-        $.ui.toast(`/compact-prep: не вдалося стиснути (${err instanceof Error ? err.message : String(err)}). Натисни кнопку ще раз.`, { timeoutMs: 15000 })
+        if (attempt < 6) return compactLater($, id, attempt + 1)
+        $.ui.toast(`/compact-prep: не вдалося стиснути (${why}) — ${later}`, {
+          timeoutMs: 15000,
+        })
       }
     })()
   })
@@ -153,14 +188,20 @@ export const register: Register = on => {
   on('tool.call', { tool: /^mcp__context-band__compact_now$/ }, async ($, e) => {
     const raw = (e as unknown as { instructions?: unknown }).instructions
     const text = (typeof raw === 'string' ? raw : '').replace(/^\s*\/compact\s+/, '').trim()
-    if (text.length < 300 || !/РІШЕННЯ/.test(text) || !/ЗАРАЗ/.test(text)) {
-      return { result: 'НЕ заплановано: instructions порожні або без 7 розділів (РІШЕННЯ … ІНСТРУМЕНТИ). Передай повний блок.' }
+    if ((e as { agentId?: string }).agentId) {
+      return { result: 'НЕ заплановано: compact_now працює лише в головній розмові, не в субагенті.' }
+    }
+    const absent = lacking(text)
+    if (text.length < 300 || absent.length) {
+      return { result: `НЕ заплановано: блок закороткий або в ньому бракує розділів (${absent.join(', ') || 'усі назви є'}). Передай повний блок із 7 розділами.` }
     }
     await update($, pending, () => text)
     return {
       result:
         'Заплановано: сесію буде стиснуто з цими інструкціями одразу після кінця цієї відповіді. ' +
-        'Більше нічого в цьому ході не роби — одним-двома реченнями скажи користувачу, що чат стискається і робота продовжиться з того ж місця.',
+        'Більше нічого в цьому ході не роби — одним-двома реченнями скажи користувачу, що чат стискається і робота продовжиться з того ж місця. ' +
+        'Якщо після цього Stop-хук щось попросить (памʼять, «не питай дозволу») — нової роботи НЕ починай і compact_now вдруге не викликай: ' +
+        'стиснення чекає кінця ходу, а блок описує стан на зараз. Заверши хід.',
     }
   }).catch(() => ({ result: 'НЕ заплановано: compact_now зламався всередині моду — надрукуй блок /compact для ручної вставки.' }))
 
@@ -168,12 +209,28 @@ export const register: Register = on => {
   // instructions, and every one that stands gets a checkpoint built by code appended after the summary.
   on('session.compact', async ($, e, next) => {
     if (e.agentId) return next(e)
-    const result = await next({ ...e, instructions: withCanon(e.instructions, e.trigger) })
-    if (result.skip !== undefined || e.trigger === 'precompute') return result
+    if (e.trigger === 'precompute') return next({ ...e, instructions: withCanon(e.instructions) })
+    let mid: MidTurn | undefined
+    try {
+      const api = await $.session.messages({ as: 'api' })
+      if (Array.isArray(api)) mid = midTurnWords(api)
+    } catch {
+      mid = undefined
+    }
+    compacting = true
+    let result: Awaited<ReturnType<typeof next>>
+    try {
+      result = await next({ ...e, instructions: withCanon(e.instructions) })
+    } finally {
+      compacting = false
+    }
+    if (result.skip !== undefined) return result
+    request = null
+    await update($, pending, () => null)
     try {
       const cwd = await $.session.cwd()
       const where = { transcript: await transcriptPath($), cwd, git: await gitState($, cwd), missing: missingSections(result.messages) }
-      const text = buildCheckpoint(e.messages, where)
+      const text = buildCheckpoint(e.messages, where, mid)
       return { ...result, messages: [...result.messages, { role: 'user', text, toolUses: [] }] }
     } catch (err) {
       $.ui.toast(`context-band: чекпоінт після стиснення не зібрано (${err instanceof Error ? err.message : String(err)})`, { timeoutMs: 10000 })
@@ -185,12 +242,21 @@ export const register: Register = on => {
     const result = await next(e)
     if (e.agentId) return result
     const text = await read($, pending)
-    if (!text) return result
-    await update($, pending, () => null)
-    if (e.isAborted) {
-      $.ui.toast('/compact-prep: хід перервано — стиснення не запускаю. Натисни кнопку ще раз, коли треба.', { timeoutMs: 10000 })
+    if (text) {
+      await update($, pending, () => null)
+      request = { id: (requestSeq += 1), text, turns: 0 }
+    } else if (request) {
+      // The compaction never stood: this turn's end is the next chance.
+      request = { ...request, id: (requestSeq += 1), turns: request.turns + 1 }
+    }
+    if (!request) return result
+    if (e.isAborted || request.turns > MAX_TURNS) {
+      request = null
+      $.ui.toast(e.isAborted
+        ? '/compact-prep: хід перервано — стиснення не запускаю. Натисни кнопку ще раз, коли треба.'
+        : '/compact-prep: стиснути не вдалося за кілька спроб. Натисни кнопку ще раз.', { timeoutMs: 10000 })
     } else {
-      compactLater($, text)
+      compactLater($, request.id)
     }
     return result
   })
