@@ -7,7 +7,7 @@
 #
 # Що ставить / What it installs (ідемпотентно — можна запускати повторно, нічого твого не перезаписує):
 #   1. parallel-ai-dev (project memory)          → clone into $KIT_HOME (default ~), init-memory in the project
-#   2. tz-skills (/tz-draft /tz-review /tz-verify /tz-go) → copy into $CLAUDE_SKILLS_DIR (default ~/.claude/skills)
+#   2. tz-skills (10 skills, including /rozbir before /tz-*) → copy into $CLAUDE_SKILLS_DIR (default ~/.claude/skills)
 #   3. providers.json for the critics              → profile "Claude only + 2 free NVIDIA NIM models"
 #   4. IMMUNE — 7 rules against code rot           → appended to the project's CLAUDE.md (once)
 #   5. Checks: memory self-check + critics smoke test → honest table AS IS
@@ -107,14 +107,14 @@ fi
 say "4/7 $(L 'Скіли Claude Code' 'Claude Code skills') → $SKILLS_DIR"
 mkdir -p "$SKILLS_DIR"
 INSTALLED=0
-for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment hiring-kit second-brain compact-prep; do
+for s in tz-draft tz-review tz-verify tz-go business-go lead-enrichment hiring-kit second-brain compact-prep rozbir; do
   src="$TZ_ROOT/skills/$s"; dst="$SKILLS_DIR/$s"
   [ -d "$src" ] || continue
   rm -rf "$dst.tmp-bootstrap" && cp -r "$src" "$dst.tmp-bootstrap" && rm -rf "$dst" && mv "$dst.tmp-bootstrap" "$dst" \
     && { say "   ✓ /$s"; INSTALLED=$((INSTALLED+1)); } || say "   ✗ /$s $(L 'не скопіювався' 'failed to copy')"
 done
-if [ "$INSTALLED" -eq 9 ]; then ok "$(L '9 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain /compact-prep встановлено' '9 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain /compact-prep installed')"; else
-  bad "$(L "Встановлено $INSTALLED/9 скілів" "Installed $INSTALLED/9 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
+if [ "$INSTALLED" -eq 10 ]; then ok "$(L '10 скілів /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain /compact-prep /rozbir встановлено' '10 skills /tz-draft /tz-review /tz-verify /tz-go /business-go /lead-enrichment /hiring-kit /second-brain /compact-prep /rozbir installed')"; else
+  bad "$(L "Встановлено $INSTALLED/10 скілів" "Installed $INSTALLED/10 skills")" "$(L "Перевір права на $SKILLS_DIR і запусти: bash $TZ_ROOT/lib/tz-skills-update.sh" "Check permissions on $SKILLS_DIR and run: bash $TZ_ROOT/lib/tz-skills-update.sh")"; fi
 
 # compact-prep: its safety net (PreCompact hook + the context-band mod). Safe to re-run; non-fatal.
 PY="$(command -v python3 || command -v python || true)"
@@ -289,5 +289,5 @@ if [ "$RED" -eq 1 ]; then
   hr; say "$(L 'Червоне — не поломка, а чек-лист. Коли все зроблено — запусти скрипт ще раз: він нічого не перезапише.' 'Red is not a failure — it is a checklist. When everything is done, run the script again: it overwrites nothing.')"
   exit 1
 fi
-hr; say "✅ $(L 'Усе зелене. Команди' 'All green. Commands'): /tz-go ($(L 'усе сам' 'everything on its own')) · /tz-draft · /tz-review · /tz-verify"
+hr; say "✅ $(L 'Усе зелене. Команди' 'All green. Commands'): /rozbir ($(L 'етап 1, перед ТЗ' 'stage 1, before the spec')) · /tz-go ($(L 'усе сам' 'everything on its own')) · /tz-draft · /tz-review · /tz-verify"
 exit 0

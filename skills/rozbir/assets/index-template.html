@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <title>{{TASK_TITLE}} — Розбираємось</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4f5f1; --paper: #ffffff; --text: #202c29; --muted: #52635c;
+      --line: #cbd5cd; --accent: #225e4c; --soft: #eaf2eb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #131b18; --paper: #1c2722; --text: #eef2ed; --muted: #b5c5bb;
+        --line: #526358; --accent: #a2ddbd; --soft: #253d30;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 1.0625rem/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+      overflow-wrap: anywhere;
+    }
+    main { max-width: 54rem; margin: auto; padding: 2.5rem 1.25rem 3rem; }
+    header, section {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 1rem; padding: 1.6rem; margin-bottom: 1.25rem;
+    }
+    header { border-top: .4rem solid var(--accent); }
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); margin: .4rem 0 1rem; }
+    h2 { font-size: 1.45rem; margin: 0 0 1rem; }
+    h3 { font-size: 1.15rem; margin: 1.4rem 0 .6rem; }
+    p { margin: .65rem 0; }
+    .eyebrow, .meta { font-size: .9rem; color: var(--muted); }
+    .eyebrow { letter-spacing: .05em; text-transform: uppercase; }
+    .lead { font-size: 1.18rem; }
+    .next { background: var(--soft); border-radius: .6rem; padding: .9rem 1rem; }
+    nav { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin: 1rem 0 0; }
+    a { color: var(--accent); text-underline-offset: .2em; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    nav a { padding: .4rem 0; }
+    details { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+    summary { cursor: pointer; font-weight: 600; padding: .25rem 0; }
+    .example { border-left: 3px solid var(--accent); padding-left: 1rem; margin: 1.1rem 0; }
+    .table-wrap { overflow-x: auto; margin: 1rem 0; }
+    table { border-collapse: collapse; width: 100%; font-size: .94rem; }
+    th, td { text-align: left; vertical-align: top; padding: .7rem; border-bottom: 1px solid var(--line); }
+    th { background: var(--soft); }
+    caption { text-align: left; font-weight: 600; margin-bottom: .5rem; }
+    pre {
+      white-space: pre-wrap; overflow-wrap: anywhere; background: var(--soft);
+      padding: 1rem; border-radius: .6rem; font: inherit;
+    }
+    code { font-size: .94em; }
+    footer { padding: .5rem; color: var(--muted); font-size: .9rem; }
+    @media (max-width: 480px) {
+      main { padding: 1rem .65rem 2rem; }
+      header, section { padding: 1.05rem; border-radius: .75rem; }
+      th, td { padding: .5rem; min-width: 7rem; }
+    }
+    @media print {
+      :root { --bg: white; --paper: white; --text: black; --muted: #333; --line: #888; --accent: #174c39; --soft: #eee; }
+      main { max-width: none; padding: 0; }
+      header, section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Етап 1 · Розбираємось</p>
+    <h1>{{TASK_TITLE}}</h1>
+    <p class="lead"><strong>Головний висновок:</strong> {{CONCLUSION}}</p>
+    <p class="meta">{{STATUS_PLAIN}} · Оновлено {{DATE}} · Крок {{STEP}}</p>
+    <p class="next"><strong>Наступна дія:</strong> {{NEXT_ACTION}}</p>
+    <nav aria-label="Розділи читанки">
+      <a href="#task">Ваша задача</a>
+      <a href="#findings">Що знайшли</a>
+      <!-- PEOPLE_NAV_BEGIN: remove with the people section when absent -->
+      <a href="#people">Що кажуть люди</a>
+      <!-- PEOPLE_NAV_END -->
+      <!-- MARKET_NAV_BEGIN: type B only -->
+      <a href="#market">Ринок і ніші</a>
+      <!-- MARKET_NAV_END -->
+      <a href="#advice">Що раджу</a>
+      <a href="#effect">Ефект у цифрах</a>
+    </nav>
+  </header>
+
+  <section id="task" aria-labelledby="task-heading">
+    <h2 id="task-heading">Ваша задача</h2>
+    <p class="lead">{{TASK_SUMMARY}}</p>
+    <details>
+      <summary>Процес і межі задачі</summary>
+    <p><strong>Проблема:</strong> {{PROBLEM}}</p>
+    <p><strong>Як зараз:</strong> {{CURRENT_PROCESS}}</p>
+    <p><strong>Межа задачі:</strong> {{SCOPE}}</p>
+    </details>
+    <details>
+      <summary>Ваш випадок, матеріали й початкова ідея</summary>
+      <h3>Останній реальний випадок</h3>
+      <p>{{LAST_CASE}}</p>
+      <h3>Що з документів</h3>
+      <p>{{MATERIALS}}</p>
+      <h3>Бачення як ідея</h3>
+      <p>{{OWNER_IDEA}}</p>
+      <h3>Хто що сказав і де є розбіжності</h3>
+      <p>{{TEAM_EVIDENCE}}</p>
+    </details>
+  </section>
+
+  <section id="findings" aria-labelledby="findings-heading">
+    <h2 id="findings-heading">Що знайшли</h2>
+    <p class="lead">{{FINDINGS_SUMMARY}}</p>
+    <details>
+      <summary>Два приклади та джерела</summary>
+    <div class="example">
+      <h3>{{EXAMPLE_1_TITLE}}</h3>
+      <p>{{EXAMPLE_1_FLOW}}</p>
+      <p class="meta">Джерело: {{EXAMPLE_1_SOURCE}} · {{EXAMPLE_1_CHECK}}</p>
+    </div>
+    <div class="example">
+      <h3>{{EXAMPLE_2_TITLE}}</h3>
+      <p>{{EXAMPLE_2_FLOW}}</p>
+      <p class="meta">Джерело: {{EXAMPLE_2_SOURCE}} · {{EXAMPLE_2_CHECK}}</p>
+    </div>
+    </details>
+    <details>
+      <summary>Подробиці дослідження та перевірка джерел</summary>
+      <p>{{RESEARCH_META}}</p>
+      <p>{{RESEARCH_JOURNAL}}</p>
+      <p>{{EVIDENCE_NOTES}}</p>
+    </details>
+  </section>
+
+  <!-- PEOPLE_SECTION_BEGIN: include only when evidence about people's experience exists -->
+  <section id="people" aria-labelledby="people-heading">
+    <h2 id="people-heading">Що кажуть люди</h2>
+    <p class="lead">{{PEOPLE_SUMMARY}}</p>
+    <details>
+      <summary>Біль, обхідні рішення, чого бракує та джерела</summary>
+      <p>{{PEOPLE_EVIDENCE}}</p>
+      <p class="meta">{{PEOPLE_LIMITS}}</p>
+    </details>
+  </section>
+  <!-- PEOPLE_SECTION_END -->
+
+  <!-- MARKET_SECTION_BEGIN: type B only; remove both section and navigation for type A -->
+  <section id="market" aria-labelledby="market-heading">
+    <h2 id="market-heading">Ринок і ніші</h2>
+    <p class="lead">{{MARKET_SUMMARY}}</p>
+    <details>
+      <summary>Попит, ніші, конкуренти та їхні сильні й слабкі сторони</summary>
+      <p>{{DEMAND_EVIDENCE}}</p>
+      <p>{{NICHE_COMPARISON}}</p>
+      <p>{{COMPETITORS}}</p>
+    </details>
+    <details>
+      <summary>План 3–5 реальних розмов із покупцями</summary>
+      <p>{{INTERVIEW_PLAN}}</p>
+      <p>{{MOM_TEST_QUESTIONS}}</p>
+      <p class="meta">{{SIMULATION_NOTE}}</p>
+    </details>
+  </section>
+  <!-- MARKET_SECTION_END -->
+
+  <section id="advice" aria-labelledby="advice-heading">
+    <h2 id="advice-heading">Що раджу</h2>
+    <p class="lead">{{RECOMMENDATION}}</p>
+    <details>
+      <summary>Що зміниться, ризик і наступна перевірка</summary>
+    <p><strong>У вашому останньому випадку:</strong> {{BEFORE_AFTER}}</p>
+    <p><strong>Головний ризик:</strong> {{MAIN_RISK}}</p>
+    <p><strong>Що ще перевірити:</strong> {{TO_VERIFY}}</p>
+    </details>
+    <details>
+      <summary>Три підходи, підстави вибору й ваші рішення</summary>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Порівняння підходів">
+        <table>
+          <caption>Який шлях підходить вашій задачі</caption>
+          <thead><tr><th scope="col">Підхід</th><th scope="col">Користь і ручні дії</th><th scope="col">Підтримка, витрати й ризик</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">А · Спростити процес</th><td>{{OPTION_A_BENEFIT}}</td><td>{{OPTION_A_COST_RISK}}</td></tr>
+            <tr><th scope="row">Б · Налаштувати готове</th><td>{{OPTION_B_BENEFIT}}</td><td>{{OPTION_B_COST_RISK}}</td></tr>
+            <tr><th scope="row">В · Створити своє</th><td>{{OPTION_C_BENEFIT}}</td><td>{{OPTION_C_COST_RISK}}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>{{DECISIONS}}</p>
+      <p>{{OWNER_CONFIRMATION}}</p>
+    </details>
+    <details>
+      <summary>Що написати наступного разу</summary>
+      <pre>{{NEXT_MESSAGE}}</pre>
+    </details>
+  </section>
+
+  <section id="effect" aria-labelledby="effect-heading">
+    <h2 id="effect-heading">Ефект у цифрах</h2>
+    <p class="lead">{{EFFECT_SUMMARY}}</p>
+    <details>
+      <summary>Вхідні дані, формули й ефект кожного підходу</summary>
+      <p>{{MEASURED_AND_ASSUMED}}</p>
+      <pre>{{EFFECT_FORMULAS}}</pre>
+      <p>{{EFFECT_BY_APPROACH}}</p>
+      <p>{{EFFECT_LIMITS}}</p>
+    </details>
+    <details>
+      <summary>Які числа ще зібрати і як</summary>
+      <p>{{NUMBERS_TO_COLLECT}}</p>
+    </details>
+  </section>
+
+  <footer>Це читанка вашого розбору. Відповідайте в чаті Claude — файли я оновлю сам.<br>
+    Щоб продовжити в новому чаті: відкрийте ту саму папку й запустіть /rozbir.</footer>
+</main>
+</body>
+</html>
