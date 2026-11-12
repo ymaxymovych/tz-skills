@@ -80,7 +80,8 @@
     <nav aria-label="Розділи читанки">
       <a href="#task">Ваша задача</a>
       <a href="#findings">Що знайшли</a>
-      <!-- PEOPLE_NAV_BEGIN: remove with the people section when absent -->
+      <a href="#ready-solutions">Готові рішення: open source і платні</a>
+      <!-- PEOPLE_NAV_BEGIN: mandatory for types A and B, keep evidence gaps visible -->
       <a href="#people">Що кажуть люди</a>
       <!-- PEOPLE_NAV_END -->
       <!-- SIM_NAV_BEGIN: types A and B; remove when user says "без симуляції" -->
@@ -142,12 +143,54 @@
     </details>
   </section>
 
-  <!-- PEOPLE_SECTION_BEGIN: include only when evidence about people's experience exists -->
+  <!-- Mandatory for types A and B; keep with honest gaps when nothing was found. -->
+  <section id="ready-solutions" aria-labelledby="ready-solutions-heading">
+    <h2 id="ready-solutions-heading">Готові рішення: open source і платні</h2>
+    <p class="lead"><strong>Що варто взяти за основу:</strong> {{READY_BASIS_CONCLUSION}}</p>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Порівняння готових рішень">
+      <table>
+        <caption>Наявні рішення для вашої задачі</caption>
+        <thead><tr><th scope="col">Рішення</th><th scope="col">Тип</th><th scope="col">Ціна з датою</th><th scope="col">Що покриває</th><th scope="col">Чого бракує</th><th scope="col">Що кажуть люди</th><th scope="col">Посилання</th></tr></thead>
+        <tbody>
+          <!-- Claude: one row per solution; type = open source / paid; include plan,
+               currency, billing unit/period, check date and verified source links.
+               Escape text; only checked http(s) anchors. Unknown costs are not zero.
+               No findings: an honest row with search scope/date, not invented solutions. -->
+          {{READY_SOLUTIONS_ROWS}}
+        </tbody>
+      </table>
+    </div>
+    <details>
+      <summary>Хто вже вирішував схожі задачі й як</summary>
+      <p>{{READY_CASES}}</p>
+    </details>
+    <details>
+      <summary>Open source: ліцензії, активність, стек і розгортання</summary>
+      <p>{{READY_OSS_DETAILS}}</p>
+      <!-- Claude: repository + LICENSE links, commercial-use terms, dated release/commit,
+           stars and issue responses; language + TypeScript/JavaScript flag, gaps and deployment.
+           Record verification by opening each repository in the same Chrome. -->
+      <p class="meta">{{READY_REPOSITORY_CHECKS}}</p>
+    </details>
+    <details>
+      <summary>Платні сервіси: тарифи, українська мова й робота в Україні</summary>
+      <p>{{READY_PAID_DETAILS}}</p>
+    </details>
+    <details>
+      <summary>Відгуки про open source і платні: похвала, скарги, причини відмови</summary>
+      <p>{{READY_REVIEWS}}</p>
+      <p class="meta">{{READY_REVIEW_SOURCES_DATES}}</p>
+      <p class="meta">{{READY_VENDOR_VS_USER_EVIDENCE}}</p>
+    </details>
+    <p class="meta">{{READY_SEARCH_LIMITS}}</p>
+  </section>
+
+  <!-- PEOPLE_SECTION_BEGIN: mandatory for types A and B, keep honest gaps -->
   <section id="people" aria-labelledby="people-heading">
     <h2 id="people-heading">Що кажуть люди</h2>
     <p class="lead">{{PEOPLE_SUMMARY}}</p>
     <details>
-      <summary>Біль, обхідні рішення, чого бракує та джерела</summary>
+      <summary>Біль самої проблеми, наслідки, обхідні способи та джерела</summary>
       <p>{{PEOPLE_EVIDENCE}}</p>
       <p class="meta">{{PEOPLE_LIMITS}}</p>
     </details>
@@ -226,10 +269,10 @@
     <h2 id="market-heading">Ринок і ніші</h2>
     <p class="lead">{{MARKET_SUMMARY}}</p>
     <details>
-      <summary>Попит, ніші, конкуренти та їхні сильні й слабкі сторони</summary>
+      <summary>Попит, ніші та прогалини</summary>
       <p>{{DEMAND_EVIDENCE}}</p>
       <p>{{NICHE_COMPARISON}}</p>
-      <p>{{COMPETITORS}}</p>
+      <p>Конкуренти, ціни й відгуки — у <a href="#ready-solutions">готових рішеннях</a>.</p>
     </details>
     <details>
       <summary>План 3–5 реальних розмов із покупцями</summary>
@@ -250,18 +293,20 @@
     <p><strong>Що ще перевірити:</strong> {{TO_VERIFY}}</p>
     </details>
     <details>
-      <summary>Три підходи, підстави вибору й ваші рішення</summary>
+      <summary>Чотири підходи, підстави вибору й ваші рішення</summary>
       <div class="table-wrap" tabindex="0" role="region" aria-label="Порівняння підходів">
         <table>
           <caption>Який шлях підходить вашій задачі</caption>
-          <thead><tr><th scope="col">Підхід</th><th scope="col">Користь і ручні дії</th><th scope="col">Підтримка, витрати й ризик</th><th scope="col">Час до першого корисного результату</th></tr></thead>
+          <thead><tr><th scope="col">Підхід</th><th scope="col">Ефект і ручні дії</th><th scope="col">Підтримка, витрати (тариф/ціна з датою або доробка) й ризики</th><th scope="col">Час до першого корисного результату</th></tr></thead>
           <tbody>
-            <tr><th scope="row">А · Спростити процес</th><td>{{OPTION_A_BENEFIT}}</td><td>{{OPTION_A_COST_RISK}}</td><td>{{OPTION_A_TIME_ASSUMPTIONS}}</td></tr>
-            <tr><th scope="row">Б · Налаштувати готове</th><td>{{OPTION_B_BENEFIT}}</td><td>{{OPTION_B_COST_RISK}}</td><td>{{OPTION_B_TIME_ASSUMPTIONS}}</td></tr>
-            <tr><th scope="row">В · Створити своє</th><td>{{OPTION_C_BENEFIT}}</td><td>{{OPTION_C_COST_RISK}}</td><td>{{OPTION_C_TIME_ASSUMPTIONS}}</td></tr>
+            <tr><th scope="row">1 · Спростити процес / наявні інструменти</th><td>{{OPTION_A_BENEFIT}}</td><td>{{OPTION_A_COST_RISK}}</td><td>{{OPTION_A_TIME_ASSUMPTIONS}}</td></tr>
+            <tr><th scope="row">2 · Купити готовий платний сервіс</th><td>{{OPTION_B_BENEFIT}}</td><td>{{OPTION_B_COST_RISK}}</td><td>{{OPTION_B_TIME_ASSUMPTIONS}}</td></tr>
+            <tr><th scope="row">3 · Взяти open source й доробити</th><td>{{OPTION_C_BENEFIT}}</td><td>{{OPTION_C_COST_RISK}}</td><td>{{OPTION_C_TIME_ASSUMPTIONS}}</td></tr>
+            <tr><th scope="row">4 · Зробити своє з нуля</th><td>{{OPTION_D_BENEFIT}}</td><td>{{OPTION_D_COST_RISK}}</td><td>{{OPTION_D_TIME_ASSUMPTIONS}}</td></tr>
           </tbody>
         </table>
       </div>
+      <p><strong>З нуля — лише якщо 1–3 не підходять:</strong> {{BUILD_FROM_SCRATCH_JUSTIFICATION}}</p>
       <p>{{DECISIONS}}</p>
       <p>{{OWNER_CONFIRMATION}}</p>
     </details>
