@@ -17,6 +17,12 @@
               ніщо не чекає; свої рішення позначає в ТЗ для перечитування)
 ```
 
+- **`/rozbir`** — студент запускає на етапі 1 курсу, **перед ТЗ**: останній реальний
+  випадок і матеріали → одне Deep Research у своєму Chrome (Gemini або Perplexity) →
+  три підходи й рекомендація → паспорт задачі та одна HTML-читанка. Код не пише.
+  Паспорт підхоплюють `/tz-draft` і `/tz-go`; з `stop_after: spec` `/tz-go` завершує
+  роботу на перевіреному ТЗ, перед дизайном та програмуванням.
+
 - **`/tz-draft`** — **виговорюєшся 10-15 хвилин у вільному потоці** (або приносиш чернетку
   ТЗ) — скіл слухає не перебиваючи, впорядковує сказане, каже, як він зрозумів
   **Job-to-be-Done**, і питає **лише те, на що сам не може відповісти з високою
@@ -111,11 +117,11 @@
 bash ~/tz-skills/lib/bootstrap-student.sh
 ```
 
-**English-speaking users:** run the same command with `KIT_LANG=en bash ~/tz-skills/lib/bootstrap-student.sh` — the installer, its summary table and the IMMUNE rules block are then in English, and all four `/tz-*` skills answer in whatever language you write in.
+**English-speaking users:** run the same command with `KIT_LANG=en bash ~/tz-skills/lib/bootstrap-student.sh` — installs 10 skills including `/rozbir` for stage 1 before writing a spec. The installer, its summary table and the IMMUNE rules block are then in English, and all four `/tz-*` skills answer in whatever language you write in.
 
 `bootstrap-student.sh` ставить одним заходом: комплект «пам'ять проєкту»
 [parallel-ai-dev](https://github.com/ymaxymovych/parallel-ai-dev) (клон + `init-memory` у проєкті),
-чотири команди `/tz-*`, профіль критиків «лише Claude + 2 безкоштовні NIM», блок правил
+10 скілів (зокрема `/rozbir` і чотири команди `/tz-*`), профіль критиків «лише Claude + 2 безкоштовні NIM», блок правил
 IMMUNE у `CLAUDE.md` — і друкує чесну таблицю: що зелене, що лишилось людині (ключ NVIDIA)
 чи Claude (заповнити декларації пам'яті). Нічого твого не перезаписує; повторний запуск безпечний.
 Код виходу 1 = є червоні рядки зі списком «що зробити», а не поломка.
