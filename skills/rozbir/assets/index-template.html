@@ -120,7 +120,9 @@
     <h2 id="findings-heading">Що знайшли</h2>
     <p class="lead">{{FINDINGS_SUMMARY}}</p>
     <details>
-      <summary>Два приклади та джерела</summary>
+      <summary>Приклади та джерела</summary>
+    <!-- Claude: для складної задачі повтори .example до 3–5 різних доказових сценаріїв;
+         для простої лиши 2. За дефіциту прибери недоказові блоки й назви прогалину. -->
     <div class="example">
       <h3>{{EXAMPLE_1_TITLE}}</h3>
       <p>{{EXAMPLE_1_FLOW}}</p>
@@ -252,11 +254,11 @@
       <div class="table-wrap" tabindex="0" role="region" aria-label="Порівняння підходів">
         <table>
           <caption>Який шлях підходить вашій задачі</caption>
-          <thead><tr><th scope="col">Підхід</th><th scope="col">Користь і ручні дії</th><th scope="col">Підтримка, витрати й ризик</th></tr></thead>
+          <thead><tr><th scope="col">Підхід</th><th scope="col">Користь і ручні дії</th><th scope="col">Підтримка, витрати й ризик</th><th scope="col">Час до першого корисного результату</th></tr></thead>
           <tbody>
-            <tr><th scope="row">А · Спростити процес</th><td>{{OPTION_A_BENEFIT}}</td><td>{{OPTION_A_COST_RISK}}</td></tr>
-            <tr><th scope="row">Б · Налаштувати готове</th><td>{{OPTION_B_BENEFIT}}</td><td>{{OPTION_B_COST_RISK}}</td></tr>
-            <tr><th scope="row">В · Створити своє</th><td>{{OPTION_C_BENEFIT}}</td><td>{{OPTION_C_COST_RISK}}</td></tr>
+            <tr><th scope="row">А · Спростити процес</th><td>{{OPTION_A_BENEFIT}}</td><td>{{OPTION_A_COST_RISK}}</td><td>{{OPTION_A_TIME_ASSUMPTIONS}}</td></tr>
+            <tr><th scope="row">Б · Налаштувати готове</th><td>{{OPTION_B_BENEFIT}}</td><td>{{OPTION_B_COST_RISK}}</td><td>{{OPTION_B_TIME_ASSUMPTIONS}}</td></tr>
+            <tr><th scope="row">В · Створити своє</th><td>{{OPTION_C_BENEFIT}}</td><td>{{OPTION_C_COST_RISK}}</td><td>{{OPTION_C_TIME_ASSUMPTIONS}}</td></tr>
           </tbody>
         </table>
       </div>
