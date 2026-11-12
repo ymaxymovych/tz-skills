@@ -80,15 +80,26 @@
     <nav aria-label="Розділи читанки">
       <a href="#task">Ваша задача</a>
       <a href="#findings">Що знайшли</a>
+      <!-- PEOPLE_NAV_BEGIN: remove with the people section when absent -->
+      <a href="#people">Що кажуть люди</a>
+      <!-- PEOPLE_NAV_END -->
+      <!-- MARKET_NAV_BEGIN: type B only -->
+      <a href="#market">Ринок і ніші</a>
+      <!-- MARKET_NAV_END -->
       <a href="#advice">Що раджу</a>
+      <a href="#effect">Ефект у цифрах</a>
     </nav>
   </header>
 
   <section id="task" aria-labelledby="task-heading">
     <h2 id="task-heading">Ваша задача</h2>
+    <p class="lead">{{TASK_SUMMARY}}</p>
+    <details>
+      <summary>Процес і межі задачі</summary>
     <p><strong>Проблема:</strong> {{PROBLEM}}</p>
     <p><strong>Як зараз:</strong> {{CURRENT_PROCESS}}</p>
     <p><strong>Межа задачі:</strong> {{SCOPE}}</p>
+    </details>
     <details>
       <summary>Ваш випадок, матеріали й початкова ідея</summary>
       <h3>Останній реальний випадок</h3>
@@ -96,13 +107,17 @@
       <h3>Що з документів</h3>
       <p>{{MATERIALS}}</p>
       <h3>Бачення як ідея</h3>
-      <p>{{STUDENT_IDEA}}</p>
+      <p>{{OWNER_IDEA}}</p>
+      <h3>Хто що сказав і де є розбіжності</h3>
+      <p>{{TEAM_EVIDENCE}}</p>
     </details>
   </section>
 
   <section id="findings" aria-labelledby="findings-heading">
     <h2 id="findings-heading">Що знайшли</h2>
-    <p>{{FINDINGS_SUMMARY}}</p>
+    <p class="lead">{{FINDINGS_SUMMARY}}</p>
+    <details>
+      <summary>Два приклади та джерела</summary>
     <div class="example">
       <h3>{{EXAMPLE_1_TITLE}}</h3>
       <p>{{EXAMPLE_1_FLOW}}</p>
@@ -113,19 +128,55 @@
       <p>{{EXAMPLE_2_FLOW}}</p>
       <p class="meta">Джерело: {{EXAMPLE_2_SOURCE}} · {{EXAMPLE_2_CHECK}}</p>
     </div>
+    </details>
     <details>
       <summary>Подробиці дослідження та перевірка джерел</summary>
       <p>{{RESEARCH_META}}</p>
+      <p>{{RESEARCH_JOURNAL}}</p>
       <p>{{EVIDENCE_NOTES}}</p>
     </details>
   </section>
 
+  <!-- PEOPLE_SECTION_BEGIN: include only when evidence about people's experience exists -->
+  <section id="people" aria-labelledby="people-heading">
+    <h2 id="people-heading">Що кажуть люди</h2>
+    <p class="lead">{{PEOPLE_SUMMARY}}</p>
+    <details>
+      <summary>Біль, обхідні рішення, чого бракує та джерела</summary>
+      <p>{{PEOPLE_EVIDENCE}}</p>
+      <p class="meta">{{PEOPLE_LIMITS}}</p>
+    </details>
+  </section>
+  <!-- PEOPLE_SECTION_END -->
+
+  <!-- MARKET_SECTION_BEGIN: type B only; remove both section and navigation for type A -->
+  <section id="market" aria-labelledby="market-heading">
+    <h2 id="market-heading">Ринок і ніші</h2>
+    <p class="lead">{{MARKET_SUMMARY}}</p>
+    <details>
+      <summary>Попит, ніші, конкуренти та їхні сильні й слабкі сторони</summary>
+      <p>{{DEMAND_EVIDENCE}}</p>
+      <p>{{NICHE_COMPARISON}}</p>
+      <p>{{COMPETITORS}}</p>
+    </details>
+    <details>
+      <summary>План 3–5 реальних розмов із покупцями</summary>
+      <p>{{INTERVIEW_PLAN}}</p>
+      <p>{{MOM_TEST_QUESTIONS}}</p>
+      <p class="meta">{{SIMULATION_NOTE}}</p>
+    </details>
+  </section>
+  <!-- MARKET_SECTION_END -->
+
   <section id="advice" aria-labelledby="advice-heading">
     <h2 id="advice-heading">Що раджу</h2>
     <p class="lead">{{RECOMMENDATION}}</p>
+    <details>
+      <summary>Що зміниться, ризик і наступна перевірка</summary>
     <p><strong>У вашому останньому випадку:</strong> {{BEFORE_AFTER}}</p>
     <p><strong>Головний ризик:</strong> {{MAIN_RISK}}</p>
     <p><strong>Що ще перевірити:</strong> {{TO_VERIFY}}</p>
+    </details>
     <details>
       <summary>Три підходи, підстави вибору й ваші рішення</summary>
       <div class="table-wrap" tabindex="0" role="region" aria-label="Порівняння підходів">
@@ -140,12 +191,27 @@
         </table>
       </div>
       <p>{{DECISIONS}}</p>
-      <p>{{STUDENT_READBACK}}</p>
-      <p>{{CUSTOMER_EVIDENCE}}</p>
+      <p>{{OWNER_CONFIRMATION}}</p>
     </details>
     <details>
       <summary>Що написати наступного разу</summary>
       <pre>{{NEXT_MESSAGE}}</pre>
+    </details>
+  </section>
+
+  <section id="effect" aria-labelledby="effect-heading">
+    <h2 id="effect-heading">Ефект у цифрах</h2>
+    <p class="lead">{{EFFECT_SUMMARY}}</p>
+    <details>
+      <summary>Вхідні дані, формули й ефект кожного підходу</summary>
+      <p>{{MEASURED_AND_ASSUMED}}</p>
+      <pre>{{EFFECT_FORMULAS}}</pre>
+      <p>{{EFFECT_BY_APPROACH}}</p>
+      <p>{{EFFECT_LIMITS}}</p>
+    </details>
+    <details>
+      <summary>Які числа ще зібрати і як</summary>
+      <p>{{NUMBERS_TO_COLLECT}}</p>
     </details>
   </section>
 
