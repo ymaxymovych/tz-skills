@@ -95,6 +95,7 @@ Every finding MUST cite the specific TZ section, heading, or paragraph it refers
 1. SECURITY & AUTHORIZATION — authn/authz gaps, privilege escalation, IDOR, SSRF, secret handling, audit logging, rate limiting.
 2. DATA MODEL & INTEGRITY — schema correctness, constraint gaps, race conditions, concurrent-write safety, migration risks, backfill strategy.
 3. HIDDEN ASSUMPTIONS — things taken for granted without justification; tech choices without alternatives considered; "obvious" behavior that isn't.
+   Stack check: TZ (and code, when reviewed) uses TypeScript, or the TZ explains a deviation for an explicit user language choice or the existing project's language.
 4. SCOPE & COMPLEXITY — feature creep, over-engineering, missing MVP cutline, premature abstractions.
 5. OPERATIONAL CONCERNS — monitoring, alerting, rollback plan, feature flags, migration safety, on-call runbook, cost envelope.
 6. FAILURE MODES & EDGE CASES — partial failures, retries/idempotency, timeout behavior, adversarial input, load spikes, dependency outages.
