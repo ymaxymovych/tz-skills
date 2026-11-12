@@ -83,6 +83,9 @@
       <!-- PEOPLE_NAV_BEGIN: remove with the people section when absent -->
       <a href="#people">Що кажуть люди</a>
       <!-- PEOPLE_NAV_END -->
+      <!-- SIM_NAV_BEGIN: types A and B; remove when user says "без симуляції" -->
+      <a href="#simulation">Що сказали б люди (симуляція)</a>
+      <!-- SIM_NAV_END -->
       <!-- MARKET_NAV_BEGIN: type B only -->
       <a href="#market">Ринок і ніші</a>
       <!-- MARKET_NAV_END -->
@@ -149,6 +152,73 @@
   </section>
   <!-- PEOPLE_SECTION_END -->
 
+  <!-- SIM_SECTION_BEGIN: types A and B; remove together with SIM_NAV when skipped -->
+  <section id="simulation" aria-labelledby="simulation-heading">
+    <h2 id="simulation-heading">Що сказали б люди (симуляція)</h2>
+    <p class="lead">{{SIM_SUMMARY}}</p>
+    <p class="next"><strong>Це симуляція на основі вашої розповіді й дослідження. Вона допомагає побачити задачу очима інших людей, але не доводить попит — перевірте 2–3 висновки живою розмовою.</strong></p>
+    <details>
+      <summary>{{SIM_1_NAME}} — {{SIM_1_DESCRIPTION}}</summary>
+      <p class="meta">Підґрунтя персони: {{SIM_1_BASIS}}</p>
+      <div>{{SIM_1_DIALOGUE}}</div>
+      <p>{{SIM_1_NOTES}}</p>
+    </details>
+    <details>
+      <summary>{{SIM_2_NAME}} — {{SIM_2_DESCRIPTION}}</summary>
+      <p class="meta">Підґрунтя персони: {{SIM_2_BASIS}}</p>
+      <div>{{SIM_2_DIALOGUE}}</div>
+      <p>{{SIM_2_NOTES}}</p>
+    </details>
+    <details>
+      <summary>{{SIM_3_NAME}} — {{SIM_3_DESCRIPTION}}</summary>
+      <p class="meta">Підґрунтя персони: {{SIM_3_BASIS}}</p>
+      <div>{{SIM_3_DIALOGUE}}</div>
+      <p>{{SIM_3_NOTES}}</p>
+    </details>
+    <details>
+      <summary>{{SIM_4_NAME}} — {{SIM_4_DESCRIPTION}}</summary>
+      <p class="meta">Підґрунтя персони: {{SIM_4_BASIS}}</p>
+      <div>{{SIM_4_DIALOGUE}}</div>
+      <p>{{SIM_4_NOTES}}</p>
+    </details>
+    <details>
+      <summary>{{SIM_5_NAME}} — {{SIM_5_DESCRIPTION}}</summary>
+      <p class="meta">Підґрунтя персони: {{SIM_5_BASIS}}</p>
+      <div>{{SIM_5_DIALOGUE}}</div>
+      <p>{{SIM_5_NOTES}}</p>
+    </details>
+    <details>
+      <summary>Зведення: біль, частота, обхідні способи та наслідки для підходів</summary>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Зведення симульованих інтерв'ю">
+        <table>
+          <caption>Висновки з симуляції — гіпотези для перевірки</caption>
+          <thead><tr><th scope="col">Персона</th><th scope="col">Біль</th><th scope="col">Частота</th><th scope="col">Як обходять зараз</th><th scope="col">Що не влаштовує</th><th scope="col">Що це означає для підходів (з симуляції)</th></tr></thead>
+          <tbody>
+            {{SIM_TABLE_ROWS}}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    <details>
+      <summary>Три гіпотези та п'ять питань для справжньої розмови</summary>
+      <h3>Гіпотези для живої перевірки</h3>
+      <ol>
+        <li>{{SIM_HYPOTHESIS_1}}</li>
+        <li>{{SIM_HYPOTHESIS_2}}</li>
+        <li>{{SIM_HYPOTHESIS_3}}</li>
+      </ol>
+      <h3>П'ять питань про минулий досвід</h3>
+      <ol>
+        <li>{{SIM_LIVE_QUESTION_1}}</li>
+        <li>{{SIM_LIVE_QUESTION_2}}</li>
+        <li>{{SIM_LIVE_QUESTION_3}}</li>
+        <li>{{SIM_LIVE_QUESTION_4}}</li>
+        <li>{{SIM_LIVE_QUESTION_5}}</li>
+      </ol>
+    </details>
+  </section>
+  <!-- SIM_SECTION_END -->
+
   <!-- MARKET_SECTION_BEGIN: type B only; remove both section and navigation for type A -->
   <section id="market" aria-labelledby="market-heading">
     <h2 id="market-heading">Ринок і ніші</h2>
@@ -163,7 +233,7 @@
       <summary>План 3–5 реальних розмов із покупцями</summary>
       <p>{{INTERVIEW_PLAN}}</p>
       <p>{{MOM_TEST_QUESTIONS}}</p>
-      <p class="meta">{{SIMULATION_NOTE}}</p>
+      <p class="meta">План реальних розмов зберігається незалежно від симуляції; вона не підтверджує попит.</p>
     </details>
   </section>
   <!-- MARKET_SECTION_END -->

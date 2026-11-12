@@ -496,6 +496,7 @@ GAPS (if not "done"): what's missing/wrong + suggested file location to fix.
 NOTES: anything ambiguous, suspicious, or worth human attention.
 
 Constraints:
+- Stack check: verify that the TZ and implementation use TypeScript, or that the TZ explains a deviation for an explicit user language choice or the existing project's language; if the per-AC bundle lacks stack evidence, record the gap in NOTES.
 - If "done", you MUST cite at least one file:line.
 - If "missing", you MUST list which files/patterns the orchestrator's UNTRUSTED_RUNTIME grep covered (read from the injected output) and any additional patterns you'd suggest the orchestrator search.
 - If "wrong", you MUST cite both AC requirement and contradicting file:line.

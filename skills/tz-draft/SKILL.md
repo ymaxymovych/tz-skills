@@ -6,6 +6,16 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 # TZ Draft — structure the flow, ask only the leftovers
 
+## Стек за замовчуванням
+
+ТЗ закладає TypeScript: Node.js на сервері; Next.js або інший TypeScript-фреймворк
+для вебу й адмінки; Telegram-бот теж на TypeScript. Не питай користувача про мову.
+Винятки: користувач прямо назвав іншу мову або проєкт уже написаний іншою мовою —
+тоді використовуй названу мову чи мову наявного коду та поясни відхилення в ТЗ;
+переписування проєкту заради цього правила не плануй.
+У розділі ТЗ про стек явно запиши **«Мова: TypeScript»**; за винятку —
+**«Мова: [обрана мова]»** та причину відхилення.
+
 ## Language
 
 Work in the language the user writes or dictates in. Detect it from the dictation, the
